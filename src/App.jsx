@@ -5,7 +5,6 @@ const MAX_SIZE = 50 * 1024 * 1024;
 function App() {
   const inputRef = useRef(null);
 
-  const [menuOpen, setMenuOpen] = useState(false);
   const [activeTool, setActiveTool] = useState("home");
 
   const [parts, setParts] = useState([]);
@@ -21,7 +20,6 @@ function App() {
 
   const selectTool = (tool) => {
     setActiveTool(tool);
-    setMenuOpen(false);
     setError("");
     setDpError("");
   };
@@ -81,7 +79,7 @@ function App() {
               canvas.height = ey - sy;
 
               const ctx = canvas.getContext("2d", {
-                alpha: false
+                alpha: false,
               });
 
               ctx.imageSmoothingEnabled = true;
@@ -101,7 +99,7 @@ function App() {
 
               result.push({
                 id: row * 2 + col + 1,
-                src: canvas.toDataURL("image/jpeg", 0.96)
+                src: canvas.toDataURL("image/jpeg", 0.96),
               });
             }
           }
@@ -227,153 +225,19 @@ function App() {
 
   return (
     <main className="page">
-
       <div className="ambient ambientOne" />
       <div className="ambient ambientTwo" />
-
-      {menuOpen && (
-        <div
-          className="menuOverlay"
-          onClick={() => setMenuOpen(false)}
-        />
-      )}
-
-      <aside className={`sideMenu ${menuOpen ? "open" : ""}`}>
-
-        <div className="sideHeader">
-
-          <div className="sideBrand">
-
-            <span className="brandMark">
-              D
-            </span>
-
-            <div>
-              <strong>Dark Tech</strong>
-              <span>Zone</span>
-            </div>
-
-          </div>
-
-          <button
-            className="closeMenu"
-            onClick={() => setMenuOpen(false)}
-          >
-            ×
-          </button>
-
-        </div>
-
-        <div className="menuLabel">
-          NAVIGATION
-        </div>
-
-        <button
-          className={`menuItem ${
-            activeTool === "home"
-              ? "selected"
-              : ""
-          }`}
-          onClick={() => selectTool("home")}
-        >
-
-          <span className="menuIcon">
-            ⌂
-          </span>
-
-          <span>
-            <strong>Home</strong>
-            <small>Main dashboard</small>
-          </span>
-
-          <b>›</b>
-
-        </button>
-
-        <div className="menuLabel">
-          TOOLS
-        </div>
-
-        <button
-          className={`menuItem ${
-            activeTool === "catalog"
-              ? "selected"
-              : ""
-          }`}
-          onClick={() => selectTool("catalog")}
-        >
-
-          <span className="menuIcon">
-            ✂
-          </span>
-
-          <span>
-            <strong>Catalog Cutter</strong>
-            <small>Split image into 6 pieces</small>
-          </span>
-
-          <b>›</b>
-
-        </button>
-
-        <button
-          className={`menuItem ${
-            activeTool === "whatsapp"
-              ? "selected"
-              : ""
-          }`}
-          onClick={() => selectTool("whatsapp")}
-        >
-
-          <span className="menuIcon">
-            ◉
-          </span>
-
-          <span>
-            <strong>WhatsApp DP</strong>
-            <small>Profile picture lookup</small>
-          </span>
-
-          <b>›</b>
-
-        </button>
-
-        <div className="sideBottom">
-
-          <span>DARK TECH ZONE</span>
-
-          <small>
-            Smart tools. Simple results.
-          </small>
-
-        </div>
-
-      </aside>
 
       <section className="shell">
 
         <nav className="nav">
-
-          <button
-            className="menuButton"
-            onClick={() => setMenuOpen(true)}
-          >
-            <i />
-            <i />
-            <i />
-          </button>
-
           <div className="brand">
             <span>DARK TECH</span>
-            <span className="muted">
-              ZONE
-            </span>
+            <span className="muted">ZONE</span>
           </div>
-
         </nav>
 
         {activeTool === "home" && (
-
           <section className="home">
 
             <div className="homeBadge">
@@ -393,7 +257,7 @@ function App() {
 
             <button
               className="exploreButton"
-              onClick={() => setMenuOpen(true)}
+              onClick={() => setActiveTool("catalog")}
             >
               Explore Tools
               <span>→</span>
@@ -405,7 +269,6 @@ function App() {
               <div className="orbit orbitTwo" />
 
               <div className="core">
-
                 <div className="coreIcon">
                   D
                 </div>
@@ -413,15 +276,16 @@ function App() {
                 <span>
                   DARK TECH
                 </span>
-
               </div>
 
               <div className="floatingCard cardOne">
                 <span>✂</span>
+
                 <div>
                   <strong>
                     Catalog Cutter
                   </strong>
+
                   <small>
                     2 × 3 Image Split
                   </small>
@@ -430,10 +294,12 @@ function App() {
 
               <div className="floatingCard cardTwo">
                 <span>◉</span>
+
                 <div>
                   <strong>
                     WhatsApp DP
                   </strong>
+
                   <small>
                     Profile Tool
                   </small>
@@ -446,6 +312,7 @@ function App() {
 
               <div className="homeSectionTitle">
                 <span>AVAILABLE TOOLS</span>
+
                 <small>
                   Choose what you need
                 </small>
@@ -459,7 +326,6 @@ function App() {
                     selectTool("catalog")
                   }
                 >
-
                   <div className="toolCardIcon">
                     ✂
                   </div>
@@ -478,7 +344,6 @@ function App() {
                   </div>
 
                   <b>→</b>
-
                 </button>
 
                 <button
@@ -487,7 +352,6 @@ function App() {
                     selectTool("whatsapp")
                   }
                 >
-
                   <div className="toolCardIcon">
                     ◉
                   </div>
@@ -506,18 +370,18 @@ function App() {
                   </div>
 
                   <b>→</b>
-
                 </button>
 
               </div>
-
             </div>
 
             <div className="homeFeatures">
 
               <div>
                 <span>⚡</span>
+
                 <strong>Fast</strong>
+
                 <small>
                   Instant tools
                 </small>
@@ -525,7 +389,9 @@ function App() {
 
               <div>
                 <span>◈</span>
+
                 <strong>Simple</strong>
+
                 <small>
                   Easy interface
                 </small>
@@ -533,7 +399,9 @@ function App() {
 
               <div>
                 <span>✦</span>
+
                 <strong>Modern</strong>
+
                 <small>
                   Dark tech design
                 </small>
@@ -542,11 +410,9 @@ function App() {
             </div>
 
           </section>
-
         )}
 
         {activeTool === "catalog" && (
-
           <section className="toolView">
 
             <div className="toolHeading">
@@ -684,7 +550,7 @@ function App() {
                         key={part.id}
                         style={{
                           "--delay":
-                            `${index * 70}ms`
+                            `${index * 70}ms`,
                         }}
                       >
 
@@ -698,7 +564,7 @@ function App() {
                           <div className="pieceNumber">
                             {String(
                               part.id
-                            ).padStart(2,"0")}
+                            ).padStart(2, "0")}
                           </div>
 
                         </div>
@@ -706,6 +572,7 @@ function App() {
                         <div className="pieceFooter">
 
                           <div>
+
                             <strong>
                               Piece {part.id}
                             </strong>
@@ -713,6 +580,7 @@ function App() {
                             <span>
                               Catalog sequence
                             </span>
+
                           </div>
 
                           <button
@@ -740,11 +608,9 @@ function App() {
             )}
 
           </section>
-
         )}
 
         {activeTool === "whatsapp" && (
-
           <section className="toolView">
 
             <div className="toolHeading">
@@ -799,7 +665,6 @@ function App() {
               </div>
 
               {dpLoading && (
-
                 <div className="dpLoader">
 
                   <div className="spinner" />
@@ -809,7 +674,6 @@ function App() {
                   </span>
 
                 </div>
-
               )}
 
               {dpError && (
@@ -866,7 +730,28 @@ function App() {
             </div>
 
           </section>
+        )}
 
+        {activeTool === "bots" && (
+          <section className="emptyView">
+            <div className="emptyIcon">◉</div>
+            <span>BOTS</span>
+            <h2>Bots</h2>
+            <p>
+              Bot tools will be available here.
+            </p>
+          </section>
+        )}
+
+        {activeTool === "ai" && (
+          <section className="emptyView">
+            <div className="emptyIcon">✦</div>
+            <span>AI</span>
+            <h2>AI Tools</h2>
+            <p>
+              AI tools will be available here.
+            </p>
+          </section>
         )}
 
         {error && (
@@ -877,12 +762,75 @@ function App() {
 
         <footer>
           <span>DARK TECH ZONE</span>
+
           <span>
             Smart tools. Simple results.
           </span>
         </footer>
 
       </section>
+
+      <nav className="bottomNav">
+
+        <button
+          className={
+            activeTool === "home"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            selectTool("home")
+          }
+        >
+          <span>⌂</span>
+          <small>Home</small>
+        </button>
+
+        <button
+          className={
+            activeTool === "catalog" ||
+            activeTool === "whatsapp"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            selectTool("catalog")
+          }
+        >
+          <span>⚒</span>
+          <small>Tools</small>
+        </button>
+
+        <button
+          className={
+            activeTool === "bots"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            selectTool("bots")
+          }
+        >
+          <span>◉</span>
+          <small>Bots</small>
+        </button>
+
+        <button
+          className={
+            activeTool === "ai"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            selectTool("ai")
+          }
+        >
+          <span>✦</span>
+          <small>AI</small>
+        </button>
+
+      </nav>
+
     </main>
   );
 }
