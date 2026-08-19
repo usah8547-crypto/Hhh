@@ -79,7 +79,7 @@ function App() {
               canvas.height = ey - sy;
 
               const ctx = canvas.getContext("2d", {
-                alpha: false,
+                alpha: false
               });
 
               ctx.imageSmoothingEnabled = true;
@@ -99,7 +99,7 @@ function App() {
 
               result.push({
                 id: row * 2 + col + 1,
-                src: canvas.toDataURL("image/jpeg", 0.96),
+                src: canvas.toDataURL("image/jpeg", 0.96)
               });
             }
           }
@@ -225,19 +225,25 @@ function App() {
 
   return (
     <main className="page">
+
       <div className="ambient ambientOne" />
       <div className="ambient ambientTwo" />
 
       <section className="shell">
 
         <nav className="nav">
+
           <div className="brand">
             <span>DARK TECH</span>
-            <span className="muted">ZONE</span>
+            <span className="muted">
+              ZONE
+            </span>
           </div>
+
         </nav>
 
         {activeTool === "home" && (
+
           <section className="home">
 
             <div className="homeBadge">
@@ -269,6 +275,7 @@ function App() {
               <div className="orbit orbitTwo" />
 
               <div className="core">
+
                 <div className="coreIcon">
                   D
                 </div>
@@ -276,9 +283,11 @@ function App() {
                 <span>
                   DARK TECH
                 </span>
+
               </div>
 
               <div className="floatingCard cardOne">
+
                 <span>✂</span>
 
                 <div>
@@ -290,9 +299,11 @@ function App() {
                     2 × 3 Image Split
                   </small>
                 </div>
+
               </div>
 
               <div className="floatingCard cardTwo">
+
                 <span>◉</span>
 
                 <div>
@@ -304,6 +315,7 @@ function App() {
                     Profile Tool
                   </small>
                 </div>
+
               </div>
 
             </div>
@@ -311,11 +323,15 @@ function App() {
             <div className="homeTools">
 
               <div className="homeSectionTitle">
-                <span>AVAILABLE TOOLS</span>
+
+                <span>
+                  AVAILABLE TOOLS
+                </span>
 
                 <small>
                   Choose what you need
                 </small>
+
               </div>
 
               <div className="toolCards">
@@ -326,12 +342,16 @@ function App() {
                     selectTool("catalog")
                   }
                 >
+
                   <div className="toolCardIcon">
                     ✂
                   </div>
 
                   <div className="toolCardContent">
-                    <span>01</span>
+
+                    <span>
+                      01
+                    </span>
 
                     <h3>
                       Catalog Cutter
@@ -341,9 +361,13 @@ function App() {
                       Split one image into
                       six perfect pieces.
                     </p>
+
                   </div>
 
-                  <b>→</b>
+                  <b>
+                    →
+                  </b>
+
                 </button>
 
                 <button
@@ -352,12 +376,16 @@ function App() {
                     selectTool("whatsapp")
                   }
                 >
+
                   <div className="toolCardIcon">
                     ◉
                   </div>
 
                   <div className="toolCardContent">
-                    <span>02</span>
+
+                    <span>
+                      02
+                    </span>
 
                     <h3>
                       WhatsApp DP
@@ -367,12 +395,17 @@ function App() {
                       Check an available
                       WhatsApp profile picture.
                     </p>
+
                   </div>
 
-                  <b>→</b>
+                  <b>
+                    →
+                  </b>
+
                 </button>
 
               </div>
+
             </div>
 
             <div className="homeFeatures">
@@ -380,7 +413,9 @@ function App() {
               <div>
                 <span>⚡</span>
 
-                <strong>Fast</strong>
+                <strong>
+                  Fast
+                </strong>
 
                 <small>
                   Instant tools
@@ -390,7 +425,9 @@ function App() {
               <div>
                 <span>◈</span>
 
-                <strong>Simple</strong>
+                <strong>
+                  Simple
+                </strong>
 
                 <small>
                   Easy interface
@@ -400,7 +437,9 @@ function App() {
               <div>
                 <span>✦</span>
 
-                <strong>Modern</strong>
+                <strong>
+                  Modern
+                </strong>
 
                 <small>
                   Dark tech design
@@ -410,13 +449,18 @@ function App() {
             </div>
 
           </section>
+
         )}
 
         {activeTool === "catalog" && (
+
           <section className="toolView">
 
             <div className="toolHeading">
-              <span>TOOL 01</span>
+
+              <span>
+                TOOL 01
+              </span>
 
               <h2>
                 Catalog Cutter
@@ -426,6 +470,7 @@ function App() {
                 Split one image into six
                 clean 2 × 3 catalog pieces.
               </p>
+
             </div>
 
             {!parts.length ? (
@@ -468,9 +513,11 @@ function App() {
                 />
 
                 <div className="dropIconWrap">
+
                   <div className="dropIcon">
                     ↑
                   </div>
+
                 </div>
 
                 <h2>
@@ -486,16 +533,31 @@ function App() {
                 </p>
 
                 <div className="formatRow">
-                  <span>JPG</span>
-                  <span>PNG</span>
-                  <span>WEBP</span>
-                  <span>UP TO 50 MB</span>
+
+                  <span>
+                    JPG
+                  </span>
+
+                  <span>
+                    PNG
+                  </span>
+
+                  <span>
+                    WEBP
+                  </span>
+
+                  <span>
+                    UP TO 50 MB
+                  </span>
+
                 </div>
 
                 {processing && (
+
                   <div className="progress">
                     <i />
                   </div>
+
                 )}
 
               </div>
@@ -509,8 +571,13 @@ function App() {
                   <div>
 
                     <div className="successLine">
-                      <span>✓</span>
+
+                      <span>
+                        ✓
+                      </span>
+
                       Image split successfully
+
                     </div>
 
                     <h2>
@@ -550,7 +617,7 @@ function App() {
                         key={part.id}
                         style={{
                           "--delay":
-                            `${index * 70}ms`,
+                            `${index * 70}ms`
                         }}
                       >
 
@@ -562,9 +629,11 @@ function App() {
                           />
 
                           <div className="pieceNumber">
+
                             {String(
                               part.id
                             ).padStart(2, "0")}
+
                           </div>
 
                         </div>
@@ -608,14 +677,18 @@ function App() {
             )}
 
           </section>
+
         )}
 
         {activeTool === "whatsapp" && (
+
           <section className="toolView">
 
             <div className="toolHeading">
 
-              <span>TOOL 02</span>
+              <span>
+                TOOL 02
+              </span>
 
               <h2>
                 WhatsApp DP
@@ -665,6 +738,7 @@ function App() {
               </div>
 
               {dpLoading && (
+
                 <div className="dpLoader">
 
                   <div className="spinner" />
@@ -674,12 +748,15 @@ function App() {
                   </span>
 
                 </div>
+
               )}
 
               {dpError && (
+
                 <div className="error">
                   ! {dpError}
                 </div>
+
               )}
 
               {profilePic &&
@@ -699,8 +776,13 @@ function App() {
                     <div className="dpDetails">
 
                       <div className="successLine">
-                        <span>✓</span>
+
+                        <span>
+                          ✓
+                        </span>
+
                         PROFILE FOUND
+
                       </div>
 
                       <h3>
@@ -730,42 +812,27 @@ function App() {
             </div>
 
           </section>
-        )}
 
-        {activeTool === "bots" && (
-          <section className="emptyView">
-            <div className="emptyIcon">◉</div>
-            <span>BOTS</span>
-            <h2>Bots</h2>
-            <p>
-              Bot tools will be available here.
-            </p>
-          </section>
-        )}
-
-        {activeTool === "ai" && (
-          <section className="emptyView">
-            <div className="emptyIcon">✦</div>
-            <span>AI</span>
-            <h2>AI Tools</h2>
-            <p>
-              AI tools will be available here.
-            </p>
-          </section>
         )}
 
         {error && (
+
           <div className="error">
             ! {error}
           </div>
+
         )}
 
         <footer>
-          <span>DARK TECH ZONE</span>
+
+          <span>
+            DARK TECH ZONE
+          </span>
 
           <span>
             Smart tools. Simple results.
           </span>
+
         </footer>
 
       </section>
@@ -782,8 +849,13 @@ function App() {
             selectTool("home")
           }
         >
-          <span>⌂</span>
-          <small>Home</small>
+          <span className="navIcon">
+            ⌂
+          </span>
+
+          <small>
+            Home
+          </small>
         </button>
 
         <button
@@ -797,36 +869,39 @@ function App() {
             selectTool("catalog")
           }
         >
-          <span>⚒</span>
-          <small>Tools</small>
+          <span className="navIcon">
+            ⚒
+          </span>
+
+          <small>
+            Tools
+          </small>
         </button>
 
         <button
-          className={
-            activeTool === "bots"
-              ? "active"
-              : ""
-          }
-          onClick={() =>
-            selectTool("bots")
-          }
+          className="navDisabled"
+          onClick={() => {}}
         >
-          <span>◉</span>
-          <small>Bots</small>
+          <span className="navIcon">
+            ♟
+          </span>
+
+          <small>
+            Bots
+          </small>
         </button>
 
         <button
-          className={
-            activeTool === "ai"
-              ? "active"
-              : ""
-          }
-          onClick={() =>
-            selectTool("ai")
-          }
+          className="navDisabled"
+          onClick={() => {}}
         >
-          <span>✦</span>
-          <small>AI</small>
+          <span className="navIcon">
+            ✦
+          </span>
+
+          <small>
+            AI
+          </small>
         </button>
 
       </nav>
