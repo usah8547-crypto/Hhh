@@ -5,6 +5,9 @@ const MAX_SIZE = 50 * 1024 * 1024;
 function App() {
   const inputRef = useRef(null);
 
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [activeTool, setActiveTool] = useState("catalog");
+
   const [parts, setParts] = useState([]);
   const [source, setSource] = useState(null);
   const [dragging, setDragging] = useState(false);
@@ -15,6 +18,13 @@ function App() {
   const [profilePic, setProfilePic] = useState("");
   const [dpLoading, setDpLoading] = useState(false);
   const [dpError, setDpError] = useState("");
+
+  const selectTool = (tool) => {
+    setActiveTool(tool);
+    setMenuOpen(false);
+    setError("");
+    setDpError("");
+  };
 
   const processFile = (file) => {
     setError("");
@@ -56,10 +66,14 @@ function App() {
               const sy = Math.round(row * cellHeight);
 
               const ex =
-                col === 1 ? width : Math.round((col + 1) * cellWidth);
+                col === 1
+                  ? width
+                  : Math.round((col + 1) * cellWidth);
 
               const ey =
-                row === 2 ? height : Math.round((row + 1) * cellHeight);
+                row === 2
+                  ? height
+                  : Math.round((row + 1) * cellHeight);
 
               const canvas = document.createElement("canvas");
 
@@ -162,7 +176,8 @@ function App() {
 
     setDpLoading(true);
 
-    const apiUrl = `https://unavatar.io/whatsapp/${cleanNumber}`;
+    const apiUrl =
+      `https://unavatar.io/whatsapp/${cleanNumber}`;
 
     const tempImg = new Image();
 
@@ -188,17 +203,17 @@ function App() {
       const response = await fetch(profilePic);
 
       if (!response.ok) {
-        throw new Error("Download failed");
+        throw new Error();
       }
 
       const blob = await response.blob();
-
       const url = URL.createObjectURL(blob);
 
       const link = document.createElement("a");
 
       link.href = url;
-      link.download = `whatsapp-dp-${phone.replace(/\D/g, "")}.jpg`;
+      link.download =
+        `whatsapp-dp-${phone.replace(/\D/g, "")}.jpg`;
 
       document.body.appendChild(link);
       link.click();
@@ -212,26 +227,103 @@ function App() {
 
   return (
     <main className="page">
+
       <div className="ambient ambientOne" />
       <div className="ambient ambientTwo" />
+
+      {menuOpen && (
+        <div
+          className="menuOverlay"
+          onClick={() => setMenuOpen(false)}
+        />
+      )}
+
+      <aside className={`sideMenu ${menuOpen ? "open" : ""}`}>
+
+        <div className="sideHeader">
+          <div className="sideBrand">
+            <span className="brandMark">D</span>
+
+            <div>
+              <strong>Dark Tech</strong>
+              <span>Zone</span>
+            </div>
+          </div>
+
+          <button
+            className="closeMenu"
+            onClick={() => setMenuOpen(false)}
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="menuLabel">
+          TOOLS
+        </div>
+
+        <button
+          className={`menuItem ${
+            activeTool === "catalog" ? "selected" : ""
+          }`}
+          onClick={() => selectTool("catalog")}
+        >
+          <span className="menuIcon">✂</span>
+
+          <span>
+            <strong>Catalog Cutter</strong>
+            <small>Split image into 6 pieces</small>
+          </span>
+
+          <b>›</b>
+        </button>
+
+        <button
+          className={`menuItem ${
+            activeTool === "whatsapp" ? "selected" : ""
+          }`}
+          onClick={() => selectTool("whatsapp")}
+        >
+          <span className="menuIcon">◉</span>
+
+          <span>
+            <strong>WhatsApp DP</strong>
+            <small>Profile picture lookup</small>
+          </span>
+
+          <b>›</b>
+        </button>
+
+        <div className="sideBottom">
+          <span>DARK TECH ZONE</span>
+          <small>Smart tools. Simple results.</small>
+        </div>
+
+      </aside>
 
       <section className="shell">
 
         <nav className="nav">
+
+          <button
+            className="menuButton"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Open menu"
+          >
+            <i />
+            <i />
+            <i />
+          </button>
+
           <div className="brand">
-            <span className="brandMark">D</span>
-
-            <span>
-              Dark <span className="muted">Tech Zone</span>
-            </span>
+            <span>Dark Tech</span>
+            <span className="muted">Zone</span>
           </div>
 
-          <div className="proBadge">
-            TOOLS
-          </div>
         </nav>
 
         <header className="hero">
+
           <div className="eyebrow">
             <span className="liveDot" />
             DARK TECH ZONE
@@ -243,266 +335,140 @@ function App() {
           </h1>
 
           <p>
-            Powerful browser tools for image splitting,
-            WhatsApp profile lookup and more.
+            Powerful tools designed to make your
+            everyday tasks faster and easier.
           </p>
+
         </header>
 
-        <section className="toolSection">
+        {activeTool === "catalog" && (
+          <section className="toolView">
 
-          <div className="sectionTitle">
-            <div>
-              <span className="toolTag">
-                TOOL 01
-              </span>
+            <div className="toolHeading">
+              <span>TOOL 01</span>
 
-              <h2>
-                WhatsApp DP Downloader
-              </h2>
-
-              <p>
-                Enter a WhatsApp number with country code
-                to check for an available profile picture.
-              </p>
-            </div>
-          </div>
-
-          <div className="dpTool">
-
-            <div className="phoneInput">
-
-              <span className="inputIcon">
-                +
-              </span>
-
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) =>
-                  setPhone(e.target.value)
-                }
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    getWhatsAppDP();
-                  }
-                }}
-                placeholder="94771234567"
-                inputMode="numeric"
-              />
-
-              <button
-                className="primary lookupBtn"
-                onClick={getWhatsAppDP}
-                disabled={dpLoading}
-              >
-                {dpLoading
-                  ? "Checking..."
-                  : "Find DP"}
-              </button>
-
-            </div>
-
-            {dpLoading && (
-              <div className="dpLoader">
-                <div className="spinner" />
-
-                <span>
-                  Searching profile picture...
-                </span>
-              </div>
-            )}
-
-            {dpError && (
-              <div className="error">
-                ! {dpError}
-              </div>
-            )}
-
-            {profilePic && !dpLoading && (
-              <div className="dpResult">
-
-                <div className="dpImageWrap">
-
-                  <img
-                    src={profilePic}
-                    alt="WhatsApp profile"
-                  />
-
-                  <div className="onlineBadge" />
-                </div>
-
-                <div className="dpInfo">
-
-                  <span className="successLine">
-                    <span>✓</span>
-                    PROFILE FOUND
-                  </span>
-
-                  <h3>
-                    +{phone.replace(/\D/g, "")}
-                  </h3>
-
-                  <p>
-                    Available WhatsApp profile
-                    picture
-                  </p>
-
-                  <button
-                    className="primary"
-                    onClick={downloadDP}
-                  >
-                    ↓ Download Profile Picture
-                  </button>
-
-                </div>
-
-              </div>
-            )}
-
-          </div>
-        </section>
-
-        <section className="toolSection catalogSection">
-
-          <div className="sectionTitle">
-            <div>
-              <span className="toolTag">
-                TOOL 02
-              </span>
-
-              <h2>
-                Catalog Cutter
-              </h2>
+              <h2>Catalog Cutter</h2>
 
               <p>
                 Split one image into six clean
                 2 × 3 catalog pieces.
               </p>
             </div>
-          </div>
 
-          {!parts.length ? (
+            {!parts.length ? (
 
-            <div
-              className={`dropzone ${
-                dragging ? "active" : ""
-              } ${
-                processing ? "processing" : ""
-              }`}
-
-              onClick={() =>
-                !processing &&
-                inputRef.current?.click()
-              }
-
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDragging(true);
-              }}
-
-              onDragLeave={() =>
-                setDragging(false)
-              }
-
-              onDrop={(e) => {
-                e.preventDefault();
-                setDragging(false);
-
-                processFile(
-                  e.dataTransfer.files?.[0]
-                );
-              }}
-            >
-
-              <input
-                ref={inputRef}
-                type="file"
-                accept="image/png,image/jpeg,image/webp,image/gif"
-                onChange={(e) =>
-                  processFile(
-                    e.target.files?.[0]
-                  )
+              <div
+                className={`dropzone ${
+                  dragging ? "active" : ""
+                } ${
+                  processing ? "processing" : ""
+                }`}
+                onClick={() =>
+                  !processing &&
+                  inputRef.current?.click()
                 }
-                hidden
-              />
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragging(true);
+                }}
+                onDragLeave={() =>
+                  setDragging(false)
+                }
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragging(false);
 
-              <div className="dropIconWrap">
-                <div className="dropIcon">
-                  ↑
+                  processFile(
+                    e.dataTransfer.files?.[0]
+                  );
+                }}
+              >
+
+                <input
+                  ref={inputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  onChange={(e) =>
+                    processFile(
+                      e.target.files?.[0]
+                    )
+                  }
+                  hidden
+                />
+
+                <div className="dropIconWrap">
+                  <div className="dropIcon">
+                    ↑
+                  </div>
                 </div>
+
+                <h2>
+                  {processing
+                    ? "Processing image..."
+                    : "Drop your image here"}
+                </h2>
+
+                <p>
+                  {processing
+                    ? "Creating six high-quality pieces"
+                    : "or click to browse from your device"}
+                </p>
+
+                <div className="formatRow">
+                  <span>JPG</span>
+                  <span>PNG</span>
+                  <span>WEBP</span>
+                  <span>UP TO 50 MB</span>
+                </div>
+
+                {processing && (
+                  <div className="progress">
+                    <i />
+                  </div>
+                )}
+
               </div>
 
-              <h2>
-                {processing
-                  ? "Processing image..."
-                  : "Drop your image here"}
-              </h2>
+            ) : (
 
-              <p>
-                {processing
-                  ? "Creating six high-quality pieces"
-                  : "or click to browse from your device"}
-              </p>
+              <section className="workspace">
 
-              <div className="formatRow">
-                <span>JPG</span>
-                <span>PNG</span>
-                <span>WEBP</span>
-                <span>Up to 50 MB</span>
-              </div>
+                <div className="workspaceTop">
 
-              {processing && (
-                <div className="progress">
-                  <i />
-                </div>
-              )}
+                  <div>
+                    <div className="successLine">
+                      <span>✓</span>
+                      Image split successfully
+                    </div>
 
-            </div>
-
-          ) : (
-
-            <section className="workspace">
-
-              <div className="workspaceTop">
-
-                <div>
-
-                  <div className="successLine">
-                    <span>✓</span>
-                    Image split successfully
+                    <h2>
+                      {source?.name || "Your image"}
+                    </h2>
                   </div>
 
-                  <h2>
-                    {source?.name ||
-                      "Your image"}
-                  </h2>
+                  <div className="toolbar">
+
+                    <button
+                      className="secondary"
+                      onClick={reset}
+                    >
+                      New image
+                    </button>
+
+                    <button
+                      className="primary"
+                      onClick={downloadAll}
+                    >
+                      Download all
+                    </button>
+
+                  </div>
 
                 </div>
 
-                <div className="toolbar">
+                <div className="grid">
 
-                  <button
-                    className="secondary"
-                    onClick={reset}
-                  >
-                    New image
-                  </button>
-
-                  <button
-                    className="primary"
-                    onClick={downloadAll}
-                  >
-                    Download all
-                  </button>
-
-                </div>
-
-              </div>
-
-              <div className="grid">
-
-                {parts.map(
-                  (part, index) => (
+                  {parts.map((part, index) => (
 
                     <article
                       className="piece"
@@ -532,7 +498,6 @@ function App() {
                       <div className="pieceFooter">
 
                         <div>
-
                           <strong>
                             Piece {part.id}
                           </strong>
@@ -540,7 +505,6 @@ function App() {
                           <span>
                             Catalog sequence
                           </span>
-
                         </div>
 
                         <button
@@ -550,7 +514,6 @@ function App() {
                               part.id
                             )
                           }
-                          aria-label={`Download piece ${part.id}`}
                         >
                           ↓
                         </button>
@@ -559,16 +522,130 @@ function App() {
 
                     </article>
 
-                  )
-                )}
+                  ))}
+
+                </div>
+
+              </section>
+
+            )}
+
+          </section>
+        )}
+
+        {activeTool === "whatsapp" && (
+          <section className="toolView">
+
+            <div className="toolHeading">
+              <span>TOOL 02</span>
+
+              <h2>WhatsApp DP</h2>
+
+              <p>
+                Enter a WhatsApp number with its
+                country code to check for an available
+                profile picture.
+              </p>
+            </div>
+
+            <div className="dpBox">
+
+              <div className="phoneInput">
+
+                <span className="plus">
+                  +
+                </span>
+
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) =>
+                    setPhone(e.target.value)
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      getWhatsAppDP();
+                    }
+                  }}
+                  placeholder="94771234567"
+                  inputMode="numeric"
+                />
+
+                <button
+                  className="primary"
+                  onClick={getWhatsAppDP}
+                  disabled={dpLoading}
+                >
+                  {dpLoading
+                    ? "Checking..."
+                    : "Find DP"}
+                </button>
 
               </div>
 
-            </section>
+              {dpLoading && (
+                <div className="dpLoader">
 
-          )}
+                  <div className="spinner" />
 
-        </section>
+                  <span>
+                    Searching profile picture...
+                  </span>
+
+                </div>
+              )}
+
+              {dpError && (
+                <div className="error">
+                  ! {dpError}
+                </div>
+              )}
+
+              {profilePic && !dpLoading && (
+
+                <div className="dpResult">
+
+                  <div className="dpImageWrap">
+
+                    <img
+                      src={profilePic}
+                      alt="WhatsApp profile"
+                    />
+
+                  </div>
+
+                  <div className="dpDetails">
+
+                    <div className="successLine">
+                      <span>✓</span>
+                      PROFILE FOUND
+                    </div>
+
+                    <h3>
+                      +{phone.replace(/\D/g, "")}
+                    </h3>
+
+                    <p>
+                      Available profile picture
+                    </p>
+
+                    <button
+                      className="primary"
+                      onClick={downloadDP}
+                    >
+                      ↓ Download DP
+                    </button>
+
+                  </div>
+
+                </div>
+
+              )}
+
+            </div>
+
+          </section>
+        )}
 
         {error && (
           <div className="error">
@@ -579,63 +656,37 @@ function App() {
         <div className="featureRow">
 
           <div>
-            <span className="featureIcon">
-              ✦
-            </span>
+            <span>✦</span>
 
             <div>
-              <strong>
-                High quality
-              </strong>
-
-              <small>
-                96% JPEG output
-              </small>
+              <strong>Fast</strong>
+              <small>Quick processing</small>
             </div>
           </div>
 
           <div>
-            <span className="featureIcon">
-              ⌁
-            </span>
+            <span>⌁</span>
 
             <div>
-              <strong>
-                Browser based
-              </strong>
-
-              <small>
-                Fast processing
-              </small>
+              <strong>Simple</strong>
+              <small>Easy to use</small>
             </div>
           </div>
 
           <div>
-            <span className="featureIcon">
-              ⚡
-            </span>
+            <span>⚡</span>
 
             <div>
-              <strong>
-                Instant
-              </strong>
-
-              <small>
-                Simple & fast
-              </small>
+              <strong>Smart</strong>
+              <small>Useful tools</small>
             </div>
           </div>
 
         </div>
 
         <footer>
-          <span>
-            DARK TECH ZONE
-          </span>
-
-          <span>
-            Smart tools for everyone
-          </span>
+          <span>DARK TECH ZONE</span>
+          <span>Smart tools. Simple results.</span>
         </footer>
 
       </section>
