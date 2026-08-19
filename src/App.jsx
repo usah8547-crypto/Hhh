@@ -6,7 +6,7 @@ function App() {
   const inputRef = useRef(null);
 
   const [menuOpen, setMenuOpen] = useState(false);
-  const [activeTool, setActiveTool] = useState("catalog");
+  const [activeTool, setActiveTool] = useState("home");
 
   const [parts, setParts] = useState([]);
   const [source, setSource] = useState(null);
@@ -189,7 +189,7 @@ function App() {
     tempImg.onerror = () => {
       setDpLoading(false);
       setDpError(
-        "Profile picture could not be found for this number."
+        "Profile picture could not be found."
       );
     };
 
@@ -241,13 +241,18 @@ function App() {
       <aside className={`sideMenu ${menuOpen ? "open" : ""}`}>
 
         <div className="sideHeader">
+
           <div className="sideBrand">
-            <span className="brandMark">D</span>
+
+            <span className="brandMark">
+              D
+            </span>
 
             <div>
               <strong>Dark Tech</strong>
               <span>Zone</span>
             </div>
+
           </div>
 
           <button
@@ -256,7 +261,34 @@ function App() {
           >
             ×
           </button>
+
         </div>
+
+        <div className="menuLabel">
+          NAVIGATION
+        </div>
+
+        <button
+          className={`menuItem ${
+            activeTool === "home"
+              ? "selected"
+              : ""
+          }`}
+          onClick={() => selectTool("home")}
+        >
+
+          <span className="menuIcon">
+            ⌂
+          </span>
+
+          <span>
+            <strong>Home</strong>
+            <small>Main dashboard</small>
+          </span>
+
+          <b>›</b>
+
+        </button>
 
         <div className="menuLabel">
           TOOLS
@@ -264,11 +296,16 @@ function App() {
 
         <button
           className={`menuItem ${
-            activeTool === "catalog" ? "selected" : ""
+            activeTool === "catalog"
+              ? "selected"
+              : ""
           }`}
           onClick={() => selectTool("catalog")}
         >
-          <span className="menuIcon">✂</span>
+
+          <span className="menuIcon">
+            ✂
+          </span>
 
           <span>
             <strong>Catalog Cutter</strong>
@@ -276,15 +313,21 @@ function App() {
           </span>
 
           <b>›</b>
+
         </button>
 
         <button
           className={`menuItem ${
-            activeTool === "whatsapp" ? "selected" : ""
+            activeTool === "whatsapp"
+              ? "selected"
+              : ""
           }`}
           onClick={() => selectTool("whatsapp")}
         >
-          <span className="menuIcon">◉</span>
+
+          <span className="menuIcon">
+            ◉
+          </span>
 
           <span>
             <strong>WhatsApp DP</strong>
@@ -292,11 +335,17 @@ function App() {
           </span>
 
           <b>›</b>
+
         </button>
 
         <div className="sideBottom">
+
           <span>DARK TECH ZONE</span>
-          <small>Smart tools. Simple results.</small>
+
+          <small>
+            Smart tools. Simple results.
+          </small>
+
         </div>
 
       </aside>
@@ -308,7 +357,6 @@ function App() {
           <button
             className="menuButton"
             onClick={() => setMenuOpen(true)}
-            aria-label="Open menu"
           >
             <i />
             <i />
@@ -316,42 +364,201 @@ function App() {
           </button>
 
           <div className="brand">
-            <span>Dark Tech</span>
-            <span className="muted">Zone</span>
+            <span>DARK TECH</span>
+            <span className="muted">
+              ZONE
+            </span>
           </div>
 
         </nav>
 
-        <header className="hero">
+        {activeTool === "home" && (
 
-          <div className="eyebrow">
-            <span className="liveDot" />
-            DARK TECH ZONE
-          </div>
+          <section className="home">
 
-          <h1>
-            Smart tools.
-            <span> Simple results.</span>
-          </h1>
+            <div className="homeBadge">
+              <span />
+              DARK TECH ZONE • ONLINE
+            </div>
 
-          <p>
-            Powerful tools designed to make your
-            everyday tasks faster and easier.
-          </p>
+            <h1>
+              Everything you need,
+              <span>in one dark zone.</span>
+            </h1>
 
-        </header>
+            <p className="homeText">
+              Simple, fast and powerful web tools
+              designed to make everyday tasks easier.
+            </p>
+
+            <button
+              className="exploreButton"
+              onClick={() => setMenuOpen(true)}
+            >
+              Explore Tools
+              <span>→</span>
+            </button>
+
+            <div className="homeVisual">
+
+              <div className="orbit orbitOne" />
+              <div className="orbit orbitTwo" />
+
+              <div className="core">
+
+                <div className="coreIcon">
+                  D
+                </div>
+
+                <span>
+                  DARK TECH
+                </span>
+
+              </div>
+
+              <div className="floatingCard cardOne">
+                <span>✂</span>
+                <div>
+                  <strong>
+                    Catalog Cutter
+                  </strong>
+                  <small>
+                    2 × 3 Image Split
+                  </small>
+                </div>
+              </div>
+
+              <div className="floatingCard cardTwo">
+                <span>◉</span>
+                <div>
+                  <strong>
+                    WhatsApp DP
+                  </strong>
+                  <small>
+                    Profile Tool
+                  </small>
+                </div>
+              </div>
+
+            </div>
+
+            <div className="homeTools">
+
+              <div className="homeSectionTitle">
+                <span>AVAILABLE TOOLS</span>
+                <small>
+                  Choose what you need
+                </small>
+              </div>
+
+              <div className="toolCards">
+
+                <button
+                  className="toolCard"
+                  onClick={() =>
+                    selectTool("catalog")
+                  }
+                >
+
+                  <div className="toolCardIcon">
+                    ✂
+                  </div>
+
+                  <div className="toolCardContent">
+                    <span>01</span>
+
+                    <h3>
+                      Catalog Cutter
+                    </h3>
+
+                    <p>
+                      Split one image into
+                      six perfect pieces.
+                    </p>
+                  </div>
+
+                  <b>→</b>
+
+                </button>
+
+                <button
+                  className="toolCard"
+                  onClick={() =>
+                    selectTool("whatsapp")
+                  }
+                >
+
+                  <div className="toolCardIcon">
+                    ◉
+                  </div>
+
+                  <div className="toolCardContent">
+                    <span>02</span>
+
+                    <h3>
+                      WhatsApp DP
+                    </h3>
+
+                    <p>
+                      Check an available
+                      WhatsApp profile picture.
+                    </p>
+                  </div>
+
+                  <b>→</b>
+
+                </button>
+
+              </div>
+
+            </div>
+
+            <div className="homeFeatures">
+
+              <div>
+                <span>⚡</span>
+                <strong>Fast</strong>
+                <small>
+                  Instant tools
+                </small>
+              </div>
+
+              <div>
+                <span>◈</span>
+                <strong>Simple</strong>
+                <small>
+                  Easy interface
+                </small>
+              </div>
+
+              <div>
+                <span>✦</span>
+                <strong>Modern</strong>
+                <small>
+                  Dark tech design
+                </small>
+              </div>
+
+            </div>
+
+          </section>
+
+        )}
 
         {activeTool === "catalog" && (
+
           <section className="toolView">
 
             <div className="toolHeading">
               <span>TOOL 01</span>
 
-              <h2>Catalog Cutter</h2>
+              <h2>
+                Catalog Cutter
+              </h2>
 
               <p>
-                Split one image into six clean
-                2 × 3 catalog pieces.
+                Split one image into six
+                clean 2 × 3 catalog pieces.
               </p>
             </div>
 
@@ -360,8 +567,6 @@ function App() {
               <div
                 className={`dropzone ${
                   dragging ? "active" : ""
-                } ${
-                  processing ? "processing" : ""
                 }`}
                 onClick={() =>
                   !processing &&
@@ -436,14 +641,17 @@ function App() {
                 <div className="workspaceTop">
 
                   <div>
+
                     <div className="successLine">
                       <span>✓</span>
                       Image split successfully
                     </div>
 
                     <h2>
-                      {source?.name || "Your image"}
+                      {source?.name ||
+                        "Your image"}
                     </h2>
+
                   </div>
 
                   <div className="toolbar">
@@ -468,61 +676,62 @@ function App() {
 
                 <div className="grid">
 
-                  {parts.map((part, index) => (
+                  {parts.map(
+                    (part, index) => (
 
-                    <article
-                      className="piece"
-                      key={part.id}
-                      style={{
-                        "--delay":
-                          `${index * 70}ms`
-                      }}
-                    >
+                      <article
+                        className="piece"
+                        key={part.id}
+                        style={{
+                          "--delay":
+                            `${index * 70}ms`
+                        }}
+                      >
 
-                      <div className="pieceImage">
+                        <div className="pieceImage">
 
-                        <img
-                          src={part.src}
-                          alt={`Catalog piece ${part.id}`}
-                        />
+                          <img
+                            src={part.src}
+                            alt=""
+                          />
 
-                        <div className="pieceNumber">
-                          {String(part.id).padStart(
-                            2,
-                            "0"
-                          )}
-                        </div>
-
-                      </div>
-
-                      <div className="pieceFooter">
-
-                        <div>
-                          <strong>
-                            Piece {part.id}
-                          </strong>
-
-                          <span>
-                            Catalog sequence
-                          </span>
-                        </div>
-
-                        <button
-                          onClick={() =>
-                            download(
-                              part.src,
+                          <div className="pieceNumber">
+                            {String(
                               part.id
-                            )
-                          }
-                        >
-                          ↓
-                        </button>
+                            ).padStart(2,"0")}
+                          </div>
 
-                      </div>
+                        </div>
 
-                    </article>
+                        <div className="pieceFooter">
 
-                  ))}
+                          <div>
+                            <strong>
+                              Piece {part.id}
+                            </strong>
+
+                            <span>
+                              Catalog sequence
+                            </span>
+                          </div>
+
+                          <button
+                            onClick={() =>
+                              download(
+                                part.src,
+                                part.id
+                              )
+                            }
+                          >
+                            ↓
+                          </button>
+
+                        </div>
+
+                      </article>
+
+                    )
+                  )}
 
                 </div>
 
@@ -531,21 +740,27 @@ function App() {
             )}
 
           </section>
+
         )}
 
         {activeTool === "whatsapp" && (
+
           <section className="toolView">
 
             <div className="toolHeading">
+
               <span>TOOL 02</span>
 
-              <h2>WhatsApp DP</h2>
+              <h2>
+                WhatsApp DP
+              </h2>
 
               <p>
-                Enter a WhatsApp number with its
-                country code to check for an available
-                profile picture.
+                Enter a WhatsApp number with
+                its country code to check for
+                an available profile picture.
               </p>
+
             </div>
 
             <div className="dpBox">
@@ -584,6 +799,7 @@ function App() {
               </div>
 
               {dpLoading && (
+
                 <div className="dpLoader">
 
                   <div className="spinner" />
@@ -593,6 +809,7 @@ function App() {
                   </span>
 
                 </div>
+
               )}
 
               {dpError && (
@@ -601,50 +818,55 @@ function App() {
                 </div>
               )}
 
-              {profilePic && !dpLoading && (
+              {profilePic &&
+                !dpLoading && (
 
-                <div className="dpResult">
+                  <div className="dpResult">
 
-                  <div className="dpImageWrap">
+                    <div className="dpImageWrap">
 
-                    <img
-                      src={profilePic}
-                      alt="WhatsApp profile"
-                    />
+                      <img
+                        src={profilePic}
+                        alt=""
+                      />
 
-                  </div>
-
-                  <div className="dpDetails">
-
-                    <div className="successLine">
-                      <span>✓</span>
-                      PROFILE FOUND
                     </div>
 
-                    <h3>
-                      +{phone.replace(/\D/g, "")}
-                    </h3>
+                    <div className="dpDetails">
 
-                    <p>
-                      Available profile picture
-                    </p>
+                      <div className="successLine">
+                        <span>✓</span>
+                        PROFILE FOUND
+                      </div>
 
-                    <button
-                      className="primary"
-                      onClick={downloadDP}
-                    >
-                      ↓ Download DP
-                    </button>
+                      <h3>
+                        +{phone.replace(
+                          /\D/g,
+                          ""
+                        )}
+                      </h3>
+
+                      <p>
+                        Available profile picture
+                      </p>
+
+                      <button
+                        className="primary"
+                        onClick={downloadDP}
+                      >
+                        ↓ Download DP
+                      </button>
+
+                    </div>
 
                   </div>
 
-                </div>
-
-              )}
+                )}
 
             </div>
 
           </section>
+
         )}
 
         {error && (
@@ -653,40 +875,11 @@ function App() {
           </div>
         )}
 
-        <div className="featureRow">
-
-          <div>
-            <span>✦</span>
-
-            <div>
-              <strong>Fast</strong>
-              <small>Quick processing</small>
-            </div>
-          </div>
-
-          <div>
-            <span>⌁</span>
-
-            <div>
-              <strong>Simple</strong>
-              <small>Easy to use</small>
-            </div>
-          </div>
-
-          <div>
-            <span>⚡</span>
-
-            <div>
-              <strong>Smart</strong>
-              <small>Useful tools</small>
-            </div>
-          </div>
-
-        </div>
-
         <footer>
           <span>DARK TECH ZONE</span>
-          <span>Smart tools. Simple results.</span>
+          <span>
+            Smart tools. Simple results.
+          </span>
         </footer>
 
       </section>
