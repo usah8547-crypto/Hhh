@@ -34,6 +34,10 @@ function App() {
     setMediaError("");
   };
 
+  /* =========================
+     CATALOG CUTTER
+  ========================= */
+
   const processFile = (file) => {
     setError("");
 
@@ -83,7 +87,8 @@ function App() {
                   ? height
                   : Math.round((row + 1) * cellHeight);
 
-              const canvas = document.createElement("canvas");
+              const canvas =
+                document.createElement("canvas");
 
               canvas.width = ex - sx;
               canvas.height = ey - sy;
@@ -109,7 +114,10 @@ function App() {
 
               result.push({
                 id: row * 2 + col + 1,
-                src: canvas.toDataURL("image/jpeg", 0.96)
+                src: canvas.toDataURL(
+                  "image/jpeg",
+                  0.96
+                )
               });
             }
           }
@@ -166,19 +174,28 @@ function App() {
     }
   };
 
+  /* =========================
+     WHATSAPP DP
+  ========================= */
+
   const getWhatsAppDP = () => {
     setDpError("");
     setProfilePic("");
 
-    const cleanNumber = phone.replace(/\D/g, "");
+    const cleanNumber =
+      phone.replace(/\D/g, "");
 
     if (!cleanNumber) {
-      setDpError("Enter a WhatsApp number.");
+      setDpError(
+        "Enter a WhatsApp number."
+      );
       return;
     }
 
     if (cleanNumber.length < 8) {
-      setDpError("Please enter a valid phone number.");
+      setDpError(
+        "Please enter a valid phone number."
+      );
       return;
     }
 
@@ -196,7 +213,9 @@ function App() {
 
     tempImg.onerror = () => {
       setDpLoading(false);
-      setDpError("Profile picture could not be found.");
+      setDpError(
+        "Profile picture could not be found."
+      );
     };
 
     tempImg.src = apiUrl;
@@ -206,30 +225,50 @@ function App() {
     if (!profilePic) return;
 
     try {
-      const response = await fetch(profilePic);
+      const response =
+        await fetch(profilePic);
 
       if (!response.ok) {
         throw new Error();
       }
 
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
+      const blob =
+        await response.blob();
 
-      const link = document.createElement("a");
+      const url =
+        URL.createObjectURL(blob);
+
+      const link =
+        document.createElement("a");
 
       link.href = url;
+
       link.download =
-        `whatsapp-dp-${phone.replace(/\D/g, "")}.jpg`;
+        `whatsapp-dp-${phone.replace(
+          /\D/g,
+          ""
+        )}.jpg`;
 
       document.body.appendChild(link);
+
       link.click();
+
       link.remove();
 
       URL.revokeObjectURL(url);
+
     } catch {
-      window.open(profilePic, "_blank");
+      window.open(
+        profilePic,
+        "_blank"
+      );
     }
   };
+
+  /* =========================
+     IMGBB MEDIA TOOL
+     IMAGE ONLY
+  ========================= */
 
   const selectMedia = (file) => {
     setMediaError("");
@@ -238,102 +277,143 @@ function App() {
 
     if (!file) return;
 
+    if (!file.type.startsWith("image/")) {
+      setMediaError(
+        "Only image files are supported."
+      );
+      return;
+    }
+
     if (file.size > MAX_SIZE) {
-      setMediaError("File size must be 50 MB or less.");
+      setMediaError(
+        "Image size must be 50 MB or less."
+      );
       return;
     }
 
     setMediaFile(file);
   };
 
-  const uploadToCatbox = () => {
-  if (!mediaFile) {
-    setMediaError("Please select a file first.");
-    return;
-  }
-
-  setMediaError("");
-  setMediaUrl("");
-  setCopied(false);
-  setMediaUploading(true);
-  setMediaProgress(0);
-
-  const formData = new FormData();
-
-  formData.append("file", mediaFile);
-
-  const xhr = new XMLHttpRequest();
-
-  xhr.open("POST", "/api/catbox");
-
-  xhr.upload.onprogress = (event) => {
-    if (event.lengthComputable) {
-      setMediaProgress(
-        Math.round(
-          (event.loaded / event.total) * 100
-        )
+  const uploadToImgBB = () => {
+    if (!mediaFile) {
+      setMediaError(
+        "Please select an image first."
       );
-    }
-  };
-
-  xhr.onload = () => {
-    setMediaUploading(false);
-
-    let data;
-
-    try {
-      data = JSON.parse(xhr.responseText);
-    } catch {
-      data = {};
-    }
-
-    if (
-      xhr.status >= 200 &&
-      xhr.status < 300 &&
-      data.url
-    ) {
-      setMediaUrl(data.url);
-      setMediaProgress(100);
       return;
     }
 
-    setMediaError(
-      data.error ||
-      "Catbox upload failed."
+    if (!mediaFile.type.startsWith("image/")) {
+      setMediaError(
+        "Only image files are supported."
+      );
+      return;
+    }
+
+    setMediaError("");
+    setMediaUrl("");
+    setCopied(false);
+    setMediaUploading(true);
+    setMediaProgress(0);
+
+    const formData =
+      new FormData();
+
+    formData.append(
+      "file",
+      mediaFile
     );
-  };
 
-  xhr.onerror = () => {
-    setMediaUploading(false);
-    setMediaError(
-      "Could not connect to upload server."
+    const xhr =
+      new XMLHttpRequest();
+
+    xhr.open(
+      "POST",
+      "/api/imgbb"
     );
+
+    xhr.upload.onprogress = (
+      event
+    ) => {
+      if (event.lengthComputable) {
+        setMediaProgress(
+          Math.round(
+            (event.loaded /
+              event.total) *
+              100
+          )
+        );
+      }
+    };
+
+    xhr.onload = () => {
+      setMediaUploading(false);
+
+      let data;
+
+      try {
+        data = JSON.parse(
+          xhr.responseText
+        );
+      } catch {
+        data = {};
+      }
+
+      if (
+        xhr.status >= 200 &&
+        xhr.status < 300 &&
+        data.success &&
+        data.url
+      ) {
+        setMediaUrl(data.url);
+        setMediaProgress(100);
+        return;
+      }
+
+      setMediaError(
+        data.error ||
+          "ImgBB upload failed."
+      );
+    };
+
+    xhr.onerror = () => {
+      setMediaUploading(false);
+
+      setMediaError(
+        "Could not connect to ImgBB upload server."
+      );
+    };
+
+    xhr.ontimeout = () => {
+      setMediaUploading(false);
+
+      setMediaError(
+        "Upload timed out. Please try again."
+      );
+    };
+
+    xhr.timeout = 120000;
+
+    xhr.send(formData);
   };
-
-  xhr.ontimeout = () => {
-    setMediaUploading(false);
-    setMediaError(
-      "Upload timed out. Please try again."
-    );
-  };
-
-  xhr.timeout = 120000;
-
-  xhr.send(formData);
-};
 
   const copyMediaUrl = async () => {
     if (!mediaUrl) return;
 
     try {
-      await navigator.clipboard.writeText(mediaUrl);
+      await navigator.clipboard.writeText(
+        mediaUrl
+      );
+
       setCopied(true);
 
       setTimeout(() => {
         setCopied(false);
       }, 2000);
+
     } catch {
-      setMediaError("Could not copy URL.");
+      setMediaError(
+        "Could not copy URL."
+      );
     }
   };
 
@@ -361,10 +441,14 @@ function App() {
 
           <div className="brand">
             <span>DARK TECH</span>
-            <span className="muted">ZONE</span>
+            <span className="muted">
+              ZONE
+            </span>
           </div>
 
         </nav>
+
+        {/* ================= HOME ================= */}
 
         {activeTool === "home" && (
           <section className="home">
@@ -376,17 +460,22 @@ function App() {
 
             <h1>
               Everything you need,
-              <span>in one dark zone.</span>
+              <span>
+                in one dark zone.
+              </span>
             </h1>
 
             <p className="homeText">
-              Simple, fast and powerful web tools
-              designed to make everyday tasks easier.
+              Simple, fast and powerful web
+              tools designed to make everyday
+              tasks easier.
             </p>
 
             <button
               className="exploreButton"
-              onClick={() => selectTool("catalog")}
+              onClick={() =>
+                selectTool("catalog")
+              }
             >
               Explore Tools
               <span>→</span>
@@ -403,26 +492,42 @@ function App() {
                   D
                 </div>
 
-                <span>DARK TECH</span>
+                <span>
+                  DARK TECH
+                </span>
 
               </div>
 
               <div className="floatingCard cardOne">
+
                 <span>✂</span>
 
                 <div>
-                  <strong>Catalog Cutter</strong>
-                  <small>2 × 3 Image Split</small>
+                  <strong>
+                    Catalog Cutter
+                  </strong>
+
+                  <small>
+                    2 × 3 Image Split
+                  </small>
                 </div>
+
               </div>
 
               <div className="floatingCard cardTwo">
+
                 <span>🔗</span>
 
                 <div>
-                  <strong>Media → URL</strong>
-                  <small>Catbox Upload</small>
+                  <strong>
+                    Media → URL
+                  </strong>
+
+                  <small>
+                    ImgBB Upload
+                  </small>
                 </div>
+
               </div>
 
             </div>
@@ -430,22 +535,35 @@ function App() {
             <div className="homeTools">
 
               <div className="homeSectionTitle">
-                <span>AVAILABLE TOOLS</span>
-                <small>Choose what you need</small>
+
+                <span>
+                  AVAILABLE TOOLS
+                </span>
+
+                <small>
+                  Choose what you need
+                </small>
+
               </div>
 
               <div className="toolCards">
 
                 <button
                   className="toolCard"
-                  onClick={() => selectTool("catalog")}
+                  onClick={() =>
+                    selectTool("catalog")
+                  }
                 >
+
                   <div className="toolCardIcon">
                     ✂
                   </div>
 
                   <div className="toolCardContent">
-                    <span>01</span>
+
+                    <span>
+                      01
+                    </span>
 
                     <h3>
                       Catalog Cutter
@@ -455,21 +573,31 @@ function App() {
                       Split one image into
                       six perfect pieces.
                     </p>
+
                   </div>
 
-                  <b>→</b>
+                  <b>
+                    →
+                  </b>
+
                 </button>
 
                 <button
                   className="toolCard"
-                  onClick={() => selectTool("whatsapp")}
+                  onClick={() =>
+                    selectTool("whatsapp")
+                  }
                 >
+
                   <div className="toolCardIcon">
                     ◉
                   </div>
 
                   <div className="toolCardContent">
-                    <span>02</span>
+
+                    <span>
+                      02
+                    </span>
 
                     <h3>
                       WhatsApp DP
@@ -479,56 +607,89 @@ function App() {
                       Check an available
                       WhatsApp profile picture.
                     </p>
+
                   </div>
 
-                  <b>→</b>
+                  <b>
+                    →
+                  </b>
+
                 </button>
 
                 <button
                   className="toolCard"
-                  onClick={() => selectTool("media")}
+                  onClick={() =>
+                    selectTool("media")
+                  }
                 >
+
                   <div className="toolCardIcon">
                     🔗
                   </div>
 
                   <div className="toolCardContent">
-                    <span>03</span>
+
+                    <span>
+                      03
+                    </span>
 
                     <h3>
-                      Media → URL
+                      Image → URL
                     </h3>
 
                     <p>
-                      Upload any file and
+                      Upload an image and
                       get a shareable URL.
                     </p>
+
                   </div>
 
-                  <b>→</b>
+                  <b>
+                    →
+                  </b>
+
                 </button>
 
               </div>
+
             </div>
 
             <div className="homeFeatures">
 
               <div>
                 <span>⚡</span>
-                <strong>Fast</strong>
-                <small>Instant tools</small>
+
+                <strong>
+                  Fast
+                </strong>
+
+                <small>
+                  Instant tools
+                </small>
               </div>
 
               <div>
                 <span>◈</span>
-                <strong>Simple</strong>
-                <small>Easy interface</small>
+
+                <strong>
+                  Simple
+                </strong>
+
+                <small>
+                  Easy interface
+                </small>
               </div>
 
               <div>
                 <span>✦</span>
-                <strong>Modern</strong>
-                <small>Dark tech design</small>
+
+                <strong>
+                  Modern
+                </strong>
+
+                <small>
+                  Dark tech design
+                </small>
               </div>
 
             </div>
@@ -536,11 +697,16 @@ function App() {
           </section>
         )}
 
+        {/* ================= CATALOG ================= */}
+
         {activeTool === "catalog" && (
           <section className="toolView">
 
             <div className="toolHeading">
-              <span>TOOL 01</span>
+
+              <span>
+                TOOL 01
+              </span>
 
               <h2>
                 Catalog Cutter
@@ -550,13 +716,16 @@ function App() {
                 Split one image into six
                 clean 2 × 3 catalog pieces.
               </p>
+
             </div>
 
             {!parts.length ? (
 
               <div
                 className={`dropzone ${
-                  dragging ? "active" : ""
+                  dragging
+                    ? "active"
+                    : ""
                 }`}
                 onClick={() =>
                   !processing &&
@@ -592,9 +761,11 @@ function App() {
                 />
 
                 <div className="dropIconWrap">
+
                   <div className="dropIcon">
                     ↑
                   </div>
+
                 </div>
 
                 <h2>
@@ -610,10 +781,23 @@ function App() {
                 </p>
 
                 <div className="formatRow">
-                  <span>JPG</span>
-                  <span>PNG</span>
-                  <span>WEBP</span>
-                  <span>UP TO 50 MB</span>
+
+                  <span>
+                    JPG
+                  </span>
+
+                  <span>
+                    PNG
+                  </span>
+
+                  <span>
+                    WEBP
+                  </span>
+
+                  <span>
+                    UP TO 50 MB
+                  </span>
+
                 </div>
 
                 {processing && (
@@ -631,14 +815,22 @@ function App() {
                 <div className="workspaceTop">
 
                   <div>
+
                     <div className="successLine">
-                      <span>✓</span>
+
+                      <span>
+                        ✓
+                      </span>
+
                       Image split successfully
+
                     </div>
 
                     <h2>
-                      {source?.name || "Your image"}
+                      {source?.name ||
+                        "Your image"}
                     </h2>
+
                   </div>
 
                   <div className="toolbar">
@@ -663,56 +855,66 @@ function App() {
 
                 <div className="grid">
 
-                  {parts.map((part, index) => (
-                    <article
-                      className="piece"
-                      key={part.id}
-                      style={{
-                        "--delay":
-                          `${index * 70}ms`
-                      }}
-                    >
+                  {parts.map(
+                    (part, index) => (
 
-                      <div className="pieceImage">
+                      <article
+                        className="piece"
+                        key={part.id}
+                        style={{
+                          "--delay":
+                            `${index * 70}ms`
+                        }}
+                      >
 
-                        <img
-                          src={part.src}
-                          alt=""
-                        />
+                        <div className="pieceImage">
 
-                        <div className="pieceNumber">
-                          {String(part.id).padStart(2, "0")}
-                        </div>
+                          <img
+                            src={part.src}
+                            alt=""
+                          />
 
-                      </div>
+                          <div className="pieceNumber">
 
-                      <div className="pieceFooter">
-
-                        <div>
-                          <strong>
-                            Piece {part.id}
-                          </strong>
-
-                          <span>
-                            Catalog sequence
-                          </span>
-                        </div>
-
-                        <button
-                          onClick={() =>
-                            download(
-                              part.src,
+                            {String(
                               part.id
-                            )
-                          }
-                        >
-                          ↓
-                        </button>
+                            ).padStart(2, "0")}
 
-                      </div>
+                          </div>
 
-                    </article>
-                  ))}
+                        </div>
+
+                        <div className="pieceFooter">
+
+                          <div>
+
+                            <strong>
+                              Piece {part.id}
+                            </strong>
+
+                            <span>
+                              Catalog sequence
+                            </span>
+
+                          </div>
+
+                          <button
+                            onClick={() =>
+                              download(
+                                part.src,
+                                part.id
+                              )
+                            }
+                          >
+                            ↓
+                          </button>
+
+                        </div>
+
+                      </article>
+
+                    )
+                  )}
 
                 </div>
 
@@ -722,12 +924,16 @@ function App() {
           </section>
         )}
 
+        {/* ================= WHATSAPP ================= */}
+
         {activeTool === "whatsapp" && (
           <section className="toolView">
 
             <div className="toolHeading">
 
-              <span>TOOL 02</span>
+              <span>
+                TOOL 02
+              </span>
 
               <h2>
                 WhatsApp DP
@@ -745,7 +951,9 @@ function App() {
 
               <div className="phoneInput">
 
-                <span className="plus">+</span>
+                <span className="plus">
+                  +
+                </span>
 
                 <input
                   type="tel"
@@ -776,11 +984,13 @@ function App() {
 
               {dpLoading && (
                 <div className="dpLoader">
+
                   <div className="spinner" />
 
                   <span>
                     Searching profile picture...
                   </span>
+
                 </div>
               )}
 
@@ -790,62 +1000,77 @@ function App() {
                 </div>
               )}
 
-              {profilePic && !dpLoading && (
-                <div className="dpResult">
+              {profilePic &&
+                !dpLoading && (
+                  <div className="dpResult">
 
-                  <div className="dpImageWrap">
-                    <img
-                      src={profilePic}
-                      alt=""
-                    />
-                  </div>
+                    <div className="dpImageWrap">
 
-                  <div className="dpDetails">
+                      <img
+                        src={profilePic}
+                        alt=""
+                      />
 
-                    <div className="successLine">
-                      <span>✓</span>
-                      PROFILE FOUND
                     </div>
 
-                    <h3>
-                      +{phone.replace(/\D/g, "")}
-                    </h3>
+                    <div className="dpDetails">
 
-                    <p>
-                      Available profile picture
-                    </p>
+                      <div className="successLine">
 
-                    <button
-                      className="primary"
-                      onClick={downloadDP}
-                    >
-                      ↓ Download DP
-                    </button>
+                        <span>
+                          ✓
+                        </span>
+
+                        PROFILE FOUND
+
+                      </div>
+
+                      <h3>
+                        +{phone.replace(
+                          /\D/g,
+                          ""
+                        )}
+                      </h3>
+
+                      <p>
+                        Available profile picture
+                      </p>
+
+                      <button
+                        className="primary"
+                        onClick={downloadDP}
+                      >
+                        ↓ Download DP
+                      </button>
+
+                    </div>
 
                   </div>
-
-                </div>
-              )}
+                )}
 
             </div>
 
           </section>
         )}
 
+        {/* ================= IMAGE TO URL ================= */}
+
         {activeTool === "media" && (
           <section className="toolView">
 
             <div className="toolHeading">
 
-              <span>TOOL 03</span>
+              <span>
+                TOOL 03
+              </span>
 
               <h2>
-                Media → URL
+                Image → URL
               </h2>
 
               <p>
-                Upload any file or media and
-                get a shareable Catbox URL.
+                Upload an image and get a
+                shareable ImgBB URL.
               </p>
 
             </div>
@@ -853,7 +1078,9 @@ function App() {
             {!mediaFile && (
               <div
                 className={`mediaUploader ${
-                  mediaDragging ? "active" : ""
+                  mediaDragging
+                    ? "active"
+                    : ""
                 }`}
                 onClick={() =>
                   !mediaUploading &&
@@ -879,6 +1106,7 @@ function App() {
                 <input
                   ref={mediaInputRef}
                   type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
                   onChange={(e) =>
                     selectMedia(
                       e.target.files?.[0]
@@ -892,7 +1120,7 @@ function App() {
                 </div>
 
                 <h2>
-                  Drop your file here
+                  Drop your image here
                 </h2>
 
                 <p>
@@ -900,11 +1128,27 @@ function App() {
                 </p>
 
                 <div className="formatRow">
-                  <span>IMAGE</span>
-                  <span>VIDEO</span>
-                  <span>AUDIO</span>
-                  <span>FILE</span>
-                  <span>UP TO 50 MB</span>
+
+                  <span>
+                    JPG
+                  </span>
+
+                  <span>
+                    PNG
+                  </span>
+
+                  <span>
+                    WEBP
+                  </span>
+
+                  <span>
+                    GIF
+                  </span>
+
+                  <span>
+                    UP TO 50 MB
+                  </span>
+
                 </div>
 
               </div>
@@ -916,10 +1160,11 @@ function App() {
                 <div className="selectedFile">
 
                   <div className="selectedFileIcon">
-                    📄
+                    🖼️
                   </div>
 
                   <div>
+
                     <strong>
                       {mediaFile.name}
                     </strong>
@@ -931,6 +1176,7 @@ function App() {
                         1024
                       ).toFixed(2)} MB
                     </span>
+
                   </div>
 
                 </div>
@@ -939,22 +1185,26 @@ function App() {
                   <div className="uploadProgress">
 
                     <div className="uploadProgressTop">
+
                       <span>
-                        Uploading to Catbox...
+                        Uploading to ImgBB...
                       </span>
 
                       <strong>
                         {mediaProgress}%
                       </strong>
+
                     </div>
 
                     <div className="uploadProgressBar">
+
                       <i
                         style={{
                           width:
                             `${mediaProgress}%`
                         }}
                       />
+
                     </div>
 
                   </div>
@@ -967,17 +1217,17 @@ function App() {
                     onClick={resetMedia}
                     disabled={mediaUploading}
                   >
-                    Change file
+                    Change image
                   </button>
 
                   <button
                     className="primary"
-                    onClick={uploadToCatbox}
+                    onClick={uploadToImgBB}
                     disabled={mediaUploading}
                   >
                     {mediaUploading
                       ? "Uploading..."
-                      : "↑ Upload to Catbox"}
+                      : "↑ Upload to ImgBB"}
                   </button>
 
                 </div>
@@ -989,12 +1239,17 @@ function App() {
               <div className="mediaResult">
 
                 <div className="successLine">
-                  <span>✓</span>
+
+                  <span>
+                    ✓
+                  </span>
+
                   UPLOAD SUCCESSFUL
+
                 </div>
 
                 <h3>
-                  Your Catbox URL
+                  Your ImgBB URL
                 </h3>
 
                 <div className="urlBox">
@@ -1011,7 +1266,9 @@ function App() {
                     className="primary"
                     onClick={copyMediaUrl}
                   >
-                    {copied ? "Copied!" : "Copy"}
+                    {copied
+                      ? "Copied!"
+                      : "Copy"}
                   </button>
 
                 </div>
@@ -1055,11 +1312,20 @@ function App() {
         )}
 
         <footer>
-          <span>DARK TECH ZONE</span>
-          <span>Smart tools. Simple results.</span>
+
+          <span>
+            DARK TECH ZONE
+          </span>
+
+          <span>
+            Smart tools. Simple results.
+          </span>
+
         </footer>
 
       </section>
+
+      {/* ================= BOTTOM NAV ================= */}
 
       <nav className="bottomNav">
 
@@ -1069,10 +1335,19 @@ function App() {
               ? "active"
               : ""
           }
-          onClick={() => selectTool("home")}
+          onClick={() =>
+            selectTool("home")
+          }
         >
-          <span className="navIcon">⌂</span>
-          <small>Home</small>
+
+          <span className="navIcon">
+            ⌂
+          </span>
+
+          <small>
+            Home
+          </small>
+
         </button>
 
         <button
@@ -1083,20 +1358,43 @@ function App() {
               ? "active"
               : ""
           }
-          onClick={() => selectTool("catalog")}
+          onClick={() =>
+            selectTool("catalog")
+          }
         >
-          <span className="navIcon">⚒</span>
-          <small>Tools</small>
+
+          <span className="navIcon">
+            ⚒
+          </span>
+
+          <small>
+            Tools
+          </small>
+
         </button>
 
         <button className="navDisabled">
-          <span className="navIcon">♟</span>
-          <small>Bots</small>
+
+          <span className="navIcon">
+            ♟
+          </span>
+
+          <small>
+            Bots
+          </small>
+
         </button>
 
         <button className="navDisabled">
-          <span className="navIcon">✦</span>
-          <small>AI</small>
+
+          <span className="navIcon">
+            ✦
+          </span>
+
+          <small>
+            AI
+          </small>
+
         </button>
 
       </nav>
