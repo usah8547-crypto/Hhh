@@ -23,30 +23,24 @@ export default async function handler(req, res) {
 
     const body = Buffer.concat(chunks);
 
-    const contentType =
-      req.headers["content-type"] || "";
+    const contentType = req.headers["content-type"];
 
-    if (!body.length) {
+    if (!contentType) {
       return res.status(400).json({
-        error: "No file uploaded."
+        error: "Missing content type"
       });
     }
 
     const form = new FormData();
 
-    form.append(
-      "reqtype",
-      "fileupload"
-    );
+    form.append("reqtype", "fileupload");
 
     form.append(
       "fileToUpload",
       body,
       {
         filename: "upload",
-        contentType:
-          contentType.split(";")[0] ||
-          "application/octet-stream"
+        contentType: contentType
       }
     );
 
@@ -55,7 +49,9 @@ export default async function handler(req, res) {
       form,
       {
         headers: {
-          ...form.getHeaders()
+          ...form.getHeaders(),
+          "User-Agent":
+            "Mozilla/5.0"
         },
         maxBodyLength: Infinity,
         maxContentLength: Infinity,
@@ -69,8 +65,8 @@ export default async function handler(req, res) {
     if (!url.startsWith("http")) {
       return res.status(500).json({
         error:
-          "Catbox did not return a valid URL.",
-        details: url
+          url ||
+          "Catbox did not return a valid URL"
       });
     }
 
@@ -89,7 +85,7 @@ export default async function handler(req, res) {
       error:
         error.response?.data ||
         error.message ||
-        "Catbox upload failed."
+        "Upload failed"
     });
   }
 }
