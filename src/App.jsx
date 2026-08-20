@@ -247,83 +247,80 @@ function App() {
   };
 
   const uploadToCatbox = () => {
-    if (!mediaFile) {
-      setMediaError("Please select a file first.");
+  if (!mediaFile) {
+    setMediaError("Please select a file first.");
+    return;
+  }
+
+  setMediaError("");
+  setMediaUrl("");
+  setCopied(false);
+  setMediaUploading(true);
+  setMediaProgress(0);
+
+  const formData = new FormData();
+
+  formData.append("file", mediaFile);
+
+  const xhr = new XMLHttpRequest();
+
+  xhr.open("POST", "/api/catbox");
+
+  xhr.upload.onprogress = (event) => {
+    if (event.lengthComputable) {
+      setMediaProgress(
+        Math.round(
+          (event.loaded / event.total) * 100
+        )
+      );
+    }
+  };
+
+  xhr.onload = () => {
+    setMediaUploading(false);
+
+    let data;
+
+    try {
+      data = JSON.parse(xhr.responseText);
+    } catch {
+      data = {};
+    }
+
+    if (
+      xhr.status >= 200 &&
+      xhr.status < 300 &&
+      data.url
+    ) {
+      setMediaUrl(data.url);
+      setMediaProgress(100);
       return;
     }
 
-    setMediaError("");
-    setMediaUrl("");
-    setCopied(false);
-    setMediaUploading(true);
-    setMediaProgress(0);
-
-    const formData = new FormData();
-
-    formData.append("file", mediaFile);
-
-    const xhr = new XMLHttpRequest();
-
-    xhr.open("POST", "/api/catbox");
-
-    xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable) {
-        const percent = Math.round(
-          (event.loaded / event.total) * 100
-        );
-
-        setMediaProgress(percent);
-      }
-    };
-
-    xhr.onload = () => {
-      setMediaUploading(false);
-
-      let data = null;
-
-      try {
-        data = JSON.parse(xhr.responseText);
-      } catch {
-        data = null;
-      }
-
-      if (xhr.status >= 200 && xhr.status < 300) {
-        if (data?.url) {
-          setMediaUrl(data.url);
-          setMediaProgress(100);
-        } else {
-          setMediaError(
-            data?.error || "Catbox upload failed."
-          );
-        }
-
-        return;
-      }
-
-      setMediaError(
-        data?.error ||
-        `Upload failed. Server returned ${xhr.status}.`
-      );
-    };
-
-    xhr.onerror = () => {
-      setMediaUploading(false);
-      setMediaError(
-        "Unable to connect to the upload server."
-      );
-    };
-
-    xhr.ontimeout = () => {
-      setMediaUploading(false);
-      setMediaError(
-        "Upload timed out. Please try again."
-      );
-    };
-
-    xhr.timeout = 120000;
-
-    xhr.send(formData);
+    setMediaError(
+      data.error ||
+      "Catbox upload failed."
+    );
   };
+
+  xhr.onerror = () => {
+    setMediaUploading(false);
+    setMediaError(
+      "Could not connect to upload server."
+    );
+  };
+
+  xhr.ontimeout = () => {
+    setMediaUploading(false);
+    setMediaError(
+      "Upload timed out. Please try again."
+    );
+  };
+
+  xhr.timeout = 120000;
+
+  xhr.send(formData);
+};
 
   const copyMediaUrl = async () => {
     if (!mediaUrl) return;
