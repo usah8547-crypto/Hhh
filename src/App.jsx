@@ -25,6 +25,7 @@ function App() {
   const [mediaProgress, setMediaProgress] = useState(0);
   const [mediaUrl, setMediaUrl] = useState("");
   const [mediaError, setMediaError] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const selectTool = (tool) => {
     setActiveTool(tool);
@@ -195,9 +196,7 @@ function App() {
 
     tempImg.onerror = () => {
       setDpLoading(false);
-      setDpError(
-        "Profile picture could not be found."
-      );
+      setDpError("Profile picture could not be found.");
     };
 
     tempImg.src = apiUrl;
@@ -235,20 +234,19 @@ function App() {
   const selectMedia = (file) => {
     setMediaError("");
     setMediaUrl("");
+    setCopied(false);
 
     if (!file) return;
 
     if (file.size > MAX_SIZE) {
-      setMediaError(
-        "File size must be 50 MB or less."
-      );
+      setMediaError("File size must be 50 MB or less.");
       return;
     }
 
     setMediaFile(file);
   };
 
-  const uploadToCatbox = async () => {
+  const uploadToCatbox = () => {
     if (!mediaFile) {
       setMediaError("Please select a file first.");
       return;
@@ -256,102 +254,89 @@ function App() {
 
     setMediaError("");
     setMediaUrl("");
+    setCopied(false);
     setMediaUploading(true);
     setMediaProgress(0);
 
-    try {
-      const formData = new FormData();
+    const formData = new FormData();
 
-      formData.append("file", mediaFile);
+    formData.append("file", mediaFile);
 
-      const xhr = new XMLHttpRequest();
+    const xhr = new XMLHttpRequest();
 
-      xhr.open(
-        "POST",
-        "/api/catbox"
-      );
+    xhr.open("POST", "/api/catbox");
 
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percent = Math.round(
-            (event.loaded / event.total) * 100
-          );
-
-          setMediaProgress(percent);
-        }
-      };
-
-      xhr.onload = () => {
-        setMediaUploading(false);
-
-        if (
-          xhr.status >= 200 &&
-          xhr.status < 300
-        ) {
-          try {
-            const data = JSON.parse(xhr.responseText);
-
-            if (data.url) {
-              setMediaUrl(data.url);
-              setMediaProgress(100);
-            } else {
-              setMediaError(
-                data.error ||
-                  "Catbox upload failed."
-              );
-            }
-          } catch {
-            setMediaError(
-              "Invalid server response."
-            );
-          }
-        } else {
-          try {
-            const data = JSON.parse(
-              xhr.responseText
-            );
-
-            setMediaError(
-              data.error ||
-                "Upload failed."
-            );
-          } catch {
-            setMediaError(
-              "Upload failed."
-            );
-          }
-        }
-      };
-
-      xhr.onerror = () => {
-        setMediaUploading(false);
-        setMediaError(
-          "Unable to connect to the upload server."
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percent = Math.round(
+          (event.loaded / event.total) * 100
         );
-      };
 
-      xhr.send(formData);
-    } catch {
+        setMediaProgress(percent);
+      }
+    };
+
+    xhr.onload = () => {
+      setMediaUploading(false);
+
+      let data = null;
+
+      try {
+        data = JSON.parse(xhr.responseText);
+      } catch {
+        data = null;
+      }
+
+      if (xhr.status >= 200 && xhr.status < 300) {
+        if (data?.url) {
+          setMediaUrl(data.url);
+          setMediaProgress(100);
+        } else {
+          setMediaError(
+            data?.error || "Catbox upload failed."
+          );
+        }
+
+        return;
+      }
+
+      setMediaError(
+        data?.error ||
+        `Upload failed. Server returned ${xhr.status}.`
+      );
+    };
+
+    xhr.onerror = () => {
       setMediaUploading(false);
       setMediaError(
-        "Something went wrong."
+        "Unable to connect to the upload server."
       );
-    }
+    };
+
+    xhr.ontimeout = () => {
+      setMediaUploading(false);
+      setMediaError(
+        "Upload timed out. Please try again."
+      );
+    };
+
+    xhr.timeout = 120000;
+
+    xhr.send(formData);
   };
 
   const copyMediaUrl = async () => {
     if (!mediaUrl) return;
 
     try {
-      await navigator.clipboard.writeText(
-        mediaUrl
-      );
+      await navigator.clipboard.writeText(mediaUrl);
+      setCopied(true);
 
-      setMediaError("");
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000);
     } catch {
-      setMediaError(
-        "Could not copy URL."
-      );
+      setMediaError("Could not copy URL.");
     }
   };
 
@@ -360,6 +345,7 @@ function App() {
     setMediaUrl("");
     setMediaError("");
     setMediaProgress(0);
+    setCopied(false);
 
     if (mediaInputRef.current) {
       mediaInputRef.current.value = "";
@@ -378,15 +364,12 @@ function App() {
 
           <div className="brand">
             <span>DARK TECH</span>
-            <span className="muted">
-              ZONE
-            </span>
+            <span className="muted">ZONE</span>
           </div>
 
         </nav>
 
         {activeTool === "home" && (
-
           <section className="home">
 
             <div className="homeBadge">
@@ -406,9 +389,7 @@ function App() {
 
             <button
               className="exploreButton"
-              onClick={() =>
-                setActiveTool("catalog")
-              }
+              onClick={() => selectTool("catalog")}
             >
               Explore Tools
               <span>→</span>
@@ -425,42 +406,26 @@ function App() {
                   D
                 </div>
 
-                <span>
-                  DARK TECH
-                </span>
+                <span>DARK TECH</span>
 
               </div>
 
               <div className="floatingCard cardOne">
-
                 <span>✂</span>
 
                 <div>
-                  <strong>
-                    Catalog Cutter
-                  </strong>
-
-                  <small>
-                    2 × 3 Image Split
-                  </small>
+                  <strong>Catalog Cutter</strong>
+                  <small>2 × 3 Image Split</small>
                 </div>
-
               </div>
 
               <div className="floatingCard cardTwo">
-
-                <span>◉</span>
+                <span>🔗</span>
 
                 <div>
-                  <strong>
-                    Media → URL
-                  </strong>
-
-                  <small>
-                    Catbox Upload
-                  </small>
+                  <strong>Media → URL</strong>
+                  <small>Catbox Upload</small>
                 </div>
-
               </div>
 
             </div>
@@ -468,32 +433,21 @@ function App() {
             <div className="homeTools">
 
               <div className="homeSectionTitle">
-
-                <span>
-                  AVAILABLE TOOLS
-                </span>
-
-                <small>
-                  Choose what you need
-                </small>
-
+                <span>AVAILABLE TOOLS</span>
+                <small>Choose what you need</small>
               </div>
 
               <div className="toolCards">
 
                 <button
                   className="toolCard"
-                  onClick={() =>
-                    selectTool("catalog")
-                  }
+                  onClick={() => selectTool("catalog")}
                 >
-
                   <div className="toolCardIcon">
                     ✂
                   </div>
 
                   <div className="toolCardContent">
-
                     <span>01</span>
 
                     <h3>
@@ -504,26 +458,20 @@ function App() {
                       Split one image into
                       six perfect pieces.
                     </p>
-
                   </div>
 
                   <b>→</b>
-
                 </button>
 
                 <button
                   className="toolCard"
-                  onClick={() =>
-                    selectTool("whatsapp")
-                  }
+                  onClick={() => selectTool("whatsapp")}
                 >
-
                   <div className="toolCardIcon">
                     ◉
                   </div>
 
                   <div className="toolCardContent">
-
                     <span>02</span>
 
                     <h3>
@@ -534,26 +482,20 @@ function App() {
                       Check an available
                       WhatsApp profile picture.
                     </p>
-
                   </div>
 
                   <b>→</b>
-
                 </button>
 
                 <button
                   className="toolCard"
-                  onClick={() =>
-                    selectTool("media")
-                  }
+                  onClick={() => selectTool("media")}
                 >
-
                   <div className="toolCardIcon">
                     🔗
                   </div>
 
                   <div className="toolCardContent">
-
                     <span>03</span>
 
                     <h3>
@@ -561,18 +503,15 @@ function App() {
                     </h3>
 
                     <p>
-                      Upload media or files
-                      and get a Catbox URL.
+                      Upload any file and
+                      get a shareable URL.
                     </p>
-
                   </div>
 
                   <b>→</b>
-
                 </button>
 
               </div>
-
             </div>
 
             <div className="homeFeatures">
@@ -598,15 +537,12 @@ function App() {
             </div>
 
           </section>
-
         )}
 
         {activeTool === "catalog" && (
-
           <section className="toolView">
 
             <div className="toolHeading">
-
               <span>TOOL 01</span>
 
               <h2>
@@ -617,7 +553,6 @@ function App() {
                 Split one image into six
                 clean 2 × 3 catalog pieces.
               </p>
-
             </div>
 
             {!parts.length ? (
@@ -678,12 +613,10 @@ function App() {
                 </p>
 
                 <div className="formatRow">
-
                   <span>JPG</span>
                   <span>PNG</span>
                   <span>WEBP</span>
                   <span>UP TO 50 MB</span>
-
                 </div>
 
                 {processing && (
@@ -701,17 +634,14 @@ function App() {
                 <div className="workspaceTop">
 
                   <div>
-
                     <div className="successLine">
                       <span>✓</span>
                       Image split successfully
                     </div>
 
                     <h2>
-                      {source?.name ||
-                        "Your image"}
+                      {source?.name || "Your image"}
                     </h2>
-
                   </div>
 
                   <div className="toolbar">
@@ -736,77 +666,66 @@ function App() {
 
                 <div className="grid">
 
-                  {parts.map(
-                    (part, index) => (
+                  {parts.map((part, index) => (
+                    <article
+                      className="piece"
+                      key={part.id}
+                      style={{
+                        "--delay":
+                          `${index * 70}ms`
+                      }}
+                    >
 
-                      <article
-                        className="piece"
-                        key={part.id}
-                        style={{
-                          "--delay":
-                            `${index * 70}ms`
-                        }}
-                      >
+                      <div className="pieceImage">
 
-                        <div className="pieceImage">
+                        <img
+                          src={part.src}
+                          alt=""
+                        />
 
-                          <img
-                            src={part.src}
-                            alt=""
-                          />
+                        <div className="pieceNumber">
+                          {String(part.id).padStart(2, "0")}
+                        </div>
 
-                          <div className="pieceNumber">
-                            {String(
+                      </div>
+
+                      <div className="pieceFooter">
+
+                        <div>
+                          <strong>
+                            Piece {part.id}
+                          </strong>
+
+                          <span>
+                            Catalog sequence
+                          </span>
+                        </div>
+
+                        <button
+                          onClick={() =>
+                            download(
+                              part.src,
                               part.id
-                            ).padStart(2, "0")}
-                          </div>
+                            )
+                          }
+                        >
+                          ↓
+                        </button>
 
-                        </div>
+                      </div>
 
-                        <div className="pieceFooter">
-
-                          <div>
-
-                            <strong>
-                              Piece {part.id}
-                            </strong>
-
-                            <span>
-                              Catalog sequence
-                            </span>
-
-                          </div>
-
-                          <button
-                            onClick={() =>
-                              download(
-                                part.src,
-                                part.id
-                              )
-                            }
-                          >
-                            ↓
-                          </button>
-
-                        </div>
-
-                      </article>
-
-                    )
-                  )}
+                    </article>
+                  ))}
 
                 </div>
 
               </section>
-
             )}
 
           </section>
-
         )}
 
         {activeTool === "whatsapp" && (
-
           <section className="toolView">
 
             <div className="toolHeading">
@@ -829,9 +748,7 @@ function App() {
 
               <div className="phoneInput">
 
-                <span className="plus">
-                  +
-                </span>
+                <span className="plus">+</span>
 
                 <input
                   type="tel"
@@ -861,17 +778,13 @@ function App() {
               </div>
 
               {dpLoading && (
-
                 <div className="dpLoader">
-
                   <div className="spinner" />
 
                   <span>
                     Searching profile picture...
                   </span>
-
                 </div>
-
               )}
 
               {dpError && (
@@ -880,62 +793,49 @@ function App() {
                 </div>
               )}
 
-              {profilePic &&
-                !dpLoading && (
+              {profilePic && !dpLoading && (
+                <div className="dpResult">
 
-                  <div className="dpResult">
+                  <div className="dpImageWrap">
+                    <img
+                      src={profilePic}
+                      alt=""
+                    />
+                  </div>
 
-                    <div className="dpImageWrap">
+                  <div className="dpDetails">
 
-                      <img
-                        src={profilePic}
-                        alt=""
-                      />
-
+                    <div className="successLine">
+                      <span>✓</span>
+                      PROFILE FOUND
                     </div>
 
-                    <div className="dpDetails">
+                    <h3>
+                      +{phone.replace(/\D/g, "")}
+                    </h3>
 
-                      <div className="successLine">
+                    <p>
+                      Available profile picture
+                    </p>
 
-                        <span>✓</span>
-
-                        PROFILE FOUND
-
-                      </div>
-
-                      <h3>
-                        +{phone.replace(
-                          /\D/g,
-                          ""
-                        )}
-                      </h3>
-
-                      <p>
-                        Available profile picture
-                      </p>
-
-                      <button
-                        className="primary"
-                        onClick={downloadDP}
-                      >
-                        ↓ Download DP
-                      </button>
-
-                    </div>
+                    <button
+                      className="primary"
+                      onClick={downloadDP}
+                    >
+                      ↓ Download DP
+                    </button>
 
                   </div>
 
-                )}
+                </div>
+              )}
 
             </div>
 
           </section>
-
         )}
 
         {activeTool === "media" && (
-
           <section className="toolView">
 
             <div className="toolHeading">
@@ -947,14 +847,13 @@ function App() {
               </h2>
 
               <p>
-                Upload any supported media or
-                file and get a shareable Catbox URL.
+                Upload any file or media and
+                get a shareable Catbox URL.
               </p>
 
             </div>
 
-            {!mediaUrl ? (
-
+            {!mediaFile && (
               <div
                 className={`mediaUploader ${
                   mediaDragging ? "active" : ""
@@ -996,51 +895,25 @@ function App() {
                 </div>
 
                 <h2>
-                  {mediaFile
-                    ? mediaFile.name
-                    : "Drop your media here"}
+                  Drop your file here
                 </h2>
 
                 <p>
-                  {mediaFile
-                    ? `${(
-                        mediaFile.size /
-                        1024 /
-                        1024
-                      ).toFixed(2)} MB`
-                    : "or click to select any file"}
+                  or click to select from your device
                 </p>
 
                 <div className="formatRow">
-
-                  <span>
-                    IMAGE
-                  </span>
-
-                  <span>
-                    VIDEO
-                  </span>
-
-                  <span>
-                    AUDIO
-                  </span>
-
-                  <span>
-                    FILE
-                  </span>
-
-                  <span>
-                    UP TO 50 MB
-                  </span>
-
+                  <span>IMAGE</span>
+                  <span>VIDEO</span>
+                  <span>AUDIO</span>
+                  <span>FILE</span>
+                  <span>UP TO 50 MB</span>
                 </div>
 
               </div>
-
-            ) : null}
+            )}
 
             {mediaFile && !mediaUrl && (
-
               <div className="mediaActionBox">
 
                 <div className="selectedFile">
@@ -1050,7 +923,6 @@ function App() {
                   </div>
 
                   <div>
-
                     <strong>
                       {mediaFile.name}
                     </strong>
@@ -1062,17 +934,14 @@ function App() {
                         1024
                       ).toFixed(2)} MB
                     </span>
-
                   </div>
 
                 </div>
 
                 {mediaUploading && (
-
                   <div className="uploadProgress">
 
                     <div className="uploadProgressTop">
-
                       <span>
                         Uploading to Catbox...
                       </span>
@@ -1080,7 +949,6 @@ function App() {
                       <strong>
                         {mediaProgress}%
                       </strong>
-
                     </div>
 
                     <div className="uploadProgressBar">
@@ -1093,7 +961,6 @@ function App() {
                     </div>
 
                   </div>
-
                 )}
 
                 <div className="mediaButtons">
@@ -1119,19 +986,14 @@ function App() {
                 </div>
 
               </div>
-
             )}
 
             {mediaUrl && (
-
               <div className="mediaResult">
 
                 <div className="successLine">
-
                   <span>✓</span>
-
                   UPLOAD SUCCESSFUL
-
                 </div>
 
                 <h3>
@@ -1152,7 +1014,7 @@ function App() {
                     className="primary"
                     onClick={copyMediaUrl}
                   >
-                    Copy
+                    {copied ? "Copied!" : "Copy"}
                   </button>
 
                 </div>
@@ -1178,19 +1040,15 @@ function App() {
                 </div>
 
               </div>
-
             )}
 
             {mediaError && (
-
               <div className="error">
                 ! {mediaError}
               </div>
-
             )}
 
           </section>
-
         )}
 
         {error && (
@@ -1200,15 +1058,8 @@ function App() {
         )}
 
         <footer>
-
-          <span>
-            DARK TECH ZONE
-          </span>
-
-          <span>
-            Smart tools. Simple results.
-          </span>
-
+          <span>DARK TECH ZONE</span>
+          <span>Smart tools. Simple results.</span>
         </footer>
 
       </section>
@@ -1221,9 +1072,7 @@ function App() {
               ? "active"
               : ""
           }
-          onClick={() =>
-            selectTool("home")
-          }
+          onClick={() => selectTool("home")}
         >
           <span className="navIcon">⌂</span>
           <small>Home</small>
@@ -1237,26 +1086,18 @@ function App() {
               ? "active"
               : ""
           }
-          onClick={() =>
-            selectTool("catalog")
-          }
+          onClick={() => selectTool("catalog")}
         >
           <span className="navIcon">⚒</span>
           <small>Tools</small>
         </button>
 
-        <button
-          className="navDisabled"
-          onClick={() => {}}
-        >
+        <button className="navDisabled">
           <span className="navIcon">♟</span>
           <small>Bots</small>
         </button>
 
-        <button
-          className="navDisabled"
-          onClick={() => {}}
-        >
+        <button className="navDisabled">
           <span className="navIcon">✦</span>
           <small>AI</small>
         </button>
