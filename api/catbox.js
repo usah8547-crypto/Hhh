@@ -1,7 +1,10 @@
-import formidable from "formidable";
-import FormData from "form-data";
-import fs from "fs";
-import axios from "axios";
+const axios = require("axios");
+const FormData = require("form-data");
+const formidable = require("formidable");
+const fs = require("fs");
+
+const API_KEY =
+  "53acd9031dbc65e69bafff8d293e22a4";
 
 export const config = {
   api: {
@@ -9,105 +12,167 @@ export const config = {
   }
 };
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
+
   if (req.method !== "POST") {
     return res.status(405).json({
+      success: false,
       error: "Method not allowed"
     });
   }
 
-  let file;
+  let uploadedFile = null;
 
   try {
+
     const form = formidable({
       multiples: false,
       keepExtensions: true,
-      maxFileSize: 50 * 1024 * 1024
+      maxFileSize: 32 * 1024 * 1024
     });
 
-    const [, files] = await form.parse(req);
+    const [, files] =
+      await form.parse(req);
 
-    file = Array.isArray(files.file)
+    uploadedFile = Array.isArray(files.file)
       ? files.file[0]
       : files.file;
 
-    if (!file) {
+    if (!uploadedFile) {
       return res.status(400).json({
-        error: "No file received"
+        success: false,
+        error: "No image received."
       });
     }
 
-    const catbox = new FormData();
+    /*
+     * Read image
+     */
 
-    catbox.append(
-      "reqtype",
-      "fileupload"
+    const imageBuffer = fs.readFileSync(
+      uploadedFile.filepath
     );
 
-    catbox.append(
-      "fileToUpload",
-      fs.createReadStream(file.filepath),
-      {
-        filename:
-          file.originalFilename || "upload",
-        contentType:
-          file.mimetype ||
-          "application/octet-stream"
-      }
+    /*
+     * ImgBB expects base64 image
+     */
+
+    const base64 =
+      imageBuffer.toString("base64");
+
+    const uploadForm = new FormData();
+
+    uploadForm.append(
+      "image",
+      base64
     );
+
+    /*
+     * Upload to ImgBB
+     */
 
     const response = await axios.post(
-      "https://catbox.moe/user/api.php",
-      catbox,
+      `https://api.imgbb.com/1/upload?key=${API_KEY}`,
+      uploadForm,
       {
-        headers: catbox.getHeaders(),
+        headers:
+          uploadForm.getHeaders(),
+
         maxBodyLength: Infinity,
         maxContentLength: Infinity,
+
         timeout: 120000
       }
     );
 
-    const result =
-      String(response.data || "").trim();
+    /*
+     * Check response
+     */
 
-    console.log("CATBOX RESPONSE:", result);
+    if (
+      !response.data ||
+      !response.data.data ||
+      !response.data.data.url
+    ) {
 
-    if (!result.startsWith("https://")) {
       return res.status(502).json({
+        success: false,
         error:
-          result ||
-          "Catbox upload failed"
+          "ImgBB did not return an image URL."
       });
+
     }
 
+    const imageUrl =
+      response.data.data.url;
+
+    /*
+     * Return URL
+     */
+
     return res.status(200).json({
-      url: result
+
+      success: true,
+
+      url: imageUrl,
+
+      display_url:
+        response.data.data.display_url,
+
+      delete_url:
+        response.data.data.delete_url,
+
+      filename:
+        uploadedFile.originalFilename,
+
+      size:
+        uploadedFile.size,
+
+      mime:
+        uploadedFile.mimetype
+
     });
 
   } catch (error) {
+
     console.error(
-      "CATBOX ERROR:",
+      "IMGBB API ERROR:",
       error.response?.data ||
       error.message
     );
 
     return res.status(500).json({
+
+      success: false,
+
       error:
-        String(
-          error.response?.data ||
-          error.message ||
-          "Upload failed"
-        )
+        error.response?.data?.error?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "ImgBB upload failed."
+
     });
 
   } finally {
+
+    /*
+     * Delete temporary file
+     */
+
     if (
-      file?.filepath &&
-      fs.existsSync(file.filepath)
+      uploadedFile?.filepath &&
+      fs.existsSync(
+        uploadedFile.filepath
+      )
     ) {
+
       try {
-        fs.unlinkSync(file.filepath);
+        fs.unlinkSync(
+          uploadedFile.filepath
+        );
       } catch {}
+
     }
+
   }
-}
+};
