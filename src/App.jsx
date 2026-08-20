@@ -4,6 +4,7 @@ const MAX_SIZE = 50 * 1024 * 1024;
 
 function App() {
   const inputRef = useRef(null);
+  const mediaInputRef = useRef(null);
 
   const [activeTool, setActiveTool] = useState("home");
 
@@ -18,10 +19,18 @@ function App() {
   const [dpLoading, setDpLoading] = useState(false);
   const [dpError, setDpError] = useState("");
 
+  const [mediaFile, setMediaFile] = useState(null);
+  const [mediaDragging, setMediaDragging] = useState(false);
+  const [mediaUploading, setMediaUploading] = useState(false);
+  const [mediaProgress, setMediaProgress] = useState(0);
+  const [mediaUrl, setMediaUrl] = useState("");
+  const [mediaError, setMediaError] = useState("");
+
   const selectTool = (tool) => {
     setActiveTool(tool);
     setError("");
     setDpError("");
+    setMediaError("");
   };
 
   const processFile = (file) => {
@@ -223,6 +232,140 @@ function App() {
     }
   };
 
+  const selectMedia = (file) => {
+    setMediaError("");
+    setMediaUrl("");
+
+    if (!file) return;
+
+    if (file.size > MAX_SIZE) {
+      setMediaError(
+        "File size must be 50 MB or less."
+      );
+      return;
+    }
+
+    setMediaFile(file);
+  };
+
+  const uploadToCatbox = async () => {
+    if (!mediaFile) {
+      setMediaError("Please select a file first.");
+      return;
+    }
+
+    setMediaError("");
+    setMediaUrl("");
+    setMediaUploading(true);
+    setMediaProgress(0);
+
+    try {
+      const formData = new FormData();
+
+      formData.append("file", mediaFile);
+
+      const xhr = new XMLHttpRequest();
+
+      xhr.open(
+        "POST",
+        "/api/catbox"
+      );
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percent = Math.round(
+            (event.loaded / event.total) * 100
+          );
+
+          setMediaProgress(percent);
+        }
+      };
+
+      xhr.onload = () => {
+        setMediaUploading(false);
+
+        if (
+          xhr.status >= 200 &&
+          xhr.status < 300
+        ) {
+          try {
+            const data = JSON.parse(xhr.responseText);
+
+            if (data.url) {
+              setMediaUrl(data.url);
+              setMediaProgress(100);
+            } else {
+              setMediaError(
+                data.error ||
+                  "Catbox upload failed."
+              );
+            }
+          } catch {
+            setMediaError(
+              "Invalid server response."
+            );
+          }
+        } else {
+          try {
+            const data = JSON.parse(
+              xhr.responseText
+            );
+
+            setMediaError(
+              data.error ||
+                "Upload failed."
+            );
+          } catch {
+            setMediaError(
+              "Upload failed."
+            );
+          }
+        }
+      };
+
+      xhr.onerror = () => {
+        setMediaUploading(false);
+        setMediaError(
+          "Unable to connect to the upload server."
+        );
+      };
+
+      xhr.send(formData);
+    } catch {
+      setMediaUploading(false);
+      setMediaError(
+        "Something went wrong."
+      );
+    }
+  };
+
+  const copyMediaUrl = async () => {
+    if (!mediaUrl) return;
+
+    try {
+      await navigator.clipboard.writeText(
+        mediaUrl
+      );
+
+      setMediaError("");
+    } catch {
+      setMediaError(
+        "Could not copy URL."
+      );
+    }
+  };
+
+  const resetMedia = () => {
+    setMediaFile(null);
+    setMediaUrl("");
+    setMediaError("");
+    setMediaProgress(0);
+
+    if (mediaInputRef.current) {
+      mediaInputRef.current.value = "";
+    }
+  };
+
   return (
     <main className="page">
 
@@ -263,7 +406,9 @@ function App() {
 
             <button
               className="exploreButton"
-              onClick={() => setActiveTool("catalog")}
+              onClick={() =>
+                setActiveTool("catalog")
+              }
             >
               Explore Tools
               <span>→</span>
@@ -308,11 +453,11 @@ function App() {
 
                 <div>
                   <strong>
-                    WhatsApp DP
+                    Media → URL
                   </strong>
 
                   <small>
-                    Profile Tool
+                    Catbox Upload
                   </small>
                 </div>
 
@@ -349,9 +494,7 @@ function App() {
 
                   <div className="toolCardContent">
 
-                    <span>
-                      01
-                    </span>
+                    <span>01</span>
 
                     <h3>
                       Catalog Cutter
@@ -364,9 +507,7 @@ function App() {
 
                   </div>
 
-                  <b>
-                    →
-                  </b>
+                  <b>→</b>
 
                 </button>
 
@@ -383,9 +524,7 @@ function App() {
 
                   <div className="toolCardContent">
 
-                    <span>
-                      02
-                    </span>
+                    <span>02</span>
 
                     <h3>
                       WhatsApp DP
@@ -398,9 +537,37 @@ function App() {
 
                   </div>
 
-                  <b>
-                    →
-                  </b>
+                  <b>→</b>
+
+                </button>
+
+                <button
+                  className="toolCard"
+                  onClick={() =>
+                    selectTool("media")
+                  }
+                >
+
+                  <div className="toolCardIcon">
+                    🔗
+                  </div>
+
+                  <div className="toolCardContent">
+
+                    <span>03</span>
+
+                    <h3>
+                      Media → URL
+                    </h3>
+
+                    <p>
+                      Upload media or files
+                      and get a Catbox URL.
+                    </p>
+
+                  </div>
+
+                  <b>→</b>
 
                 </button>
 
@@ -412,38 +579,20 @@ function App() {
 
               <div>
                 <span>⚡</span>
-
-                <strong>
-                  Fast
-                </strong>
-
-                <small>
-                  Instant tools
-                </small>
+                <strong>Fast</strong>
+                <small>Instant tools</small>
               </div>
 
               <div>
                 <span>◈</span>
-
-                <strong>
-                  Simple
-                </strong>
-
-                <small>
-                  Easy interface
-                </small>
+                <strong>Simple</strong>
+                <small>Easy interface</small>
               </div>
 
               <div>
                 <span>✦</span>
-
-                <strong>
-                  Modern
-                </strong>
-
-                <small>
-                  Dark tech design
-                </small>
+                <strong>Modern</strong>
+                <small>Dark tech design</small>
               </div>
 
             </div>
@@ -458,9 +607,7 @@ function App() {
 
             <div className="toolHeading">
 
-              <span>
-                TOOL 01
-              </span>
+              <span>TOOL 01</span>
 
               <h2>
                 Catalog Cutter
@@ -513,11 +660,9 @@ function App() {
                 />
 
                 <div className="dropIconWrap">
-
                   <div className="dropIcon">
                     ↑
                   </div>
-
                 </div>
 
                 <h2>
@@ -534,30 +679,17 @@ function App() {
 
                 <div className="formatRow">
 
-                  <span>
-                    JPG
-                  </span>
-
-                  <span>
-                    PNG
-                  </span>
-
-                  <span>
-                    WEBP
-                  </span>
-
-                  <span>
-                    UP TO 50 MB
-                  </span>
+                  <span>JPG</span>
+                  <span>PNG</span>
+                  <span>WEBP</span>
+                  <span>UP TO 50 MB</span>
 
                 </div>
 
                 {processing && (
-
                   <div className="progress">
                     <i />
                   </div>
-
                 )}
 
               </div>
@@ -571,13 +703,8 @@ function App() {
                   <div>
 
                     <div className="successLine">
-
-                      <span>
-                        ✓
-                      </span>
-
+                      <span>✓</span>
                       Image split successfully
-
                     </div>
 
                     <h2>
@@ -629,11 +756,9 @@ function App() {
                           />
 
                           <div className="pieceNumber">
-
                             {String(
                               part.id
                             ).padStart(2, "0")}
-
                           </div>
 
                         </div>
@@ -686,9 +811,7 @@ function App() {
 
             <div className="toolHeading">
 
-              <span>
-                TOOL 02
-              </span>
+              <span>TOOL 02</span>
 
               <h2>
                 WhatsApp DP
@@ -752,11 +875,9 @@ function App() {
               )}
 
               {dpError && (
-
                 <div className="error">
                   ! {dpError}
                 </div>
-
               )}
 
               {profilePic &&
@@ -777,9 +898,7 @@ function App() {
 
                       <div className="successLine">
 
-                        <span>
-                          ✓
-                        </span>
+                        <span>✓</span>
 
                         PROFILE FOUND
 
@@ -815,12 +934,269 @@ function App() {
 
         )}
 
-        {error && (
+        {activeTool === "media" && (
 
+          <section className="toolView">
+
+            <div className="toolHeading">
+
+              <span>TOOL 03</span>
+
+              <h2>
+                Media → URL
+              </h2>
+
+              <p>
+                Upload any supported media or
+                file and get a shareable Catbox URL.
+              </p>
+
+            </div>
+
+            {!mediaUrl ? (
+
+              <div
+                className={`mediaUploader ${
+                  mediaDragging ? "active" : ""
+                }`}
+                onClick={() =>
+                  !mediaUploading &&
+                  mediaInputRef.current?.click()
+                }
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setMediaDragging(true);
+                }}
+                onDragLeave={() =>
+                  setMediaDragging(false)
+                }
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setMediaDragging(false);
+
+                  selectMedia(
+                    e.dataTransfer.files?.[0]
+                  );
+                }}
+              >
+
+                <input
+                  ref={mediaInputRef}
+                  type="file"
+                  onChange={(e) =>
+                    selectMedia(
+                      e.target.files?.[0]
+                    )
+                  }
+                  hidden
+                />
+
+                <div className="mediaUploadIcon">
+                  🔗
+                </div>
+
+                <h2>
+                  {mediaFile
+                    ? mediaFile.name
+                    : "Drop your media here"}
+                </h2>
+
+                <p>
+                  {mediaFile
+                    ? `${(
+                        mediaFile.size /
+                        1024 /
+                        1024
+                      ).toFixed(2)} MB`
+                    : "or click to select any file"}
+                </p>
+
+                <div className="formatRow">
+
+                  <span>
+                    IMAGE
+                  </span>
+
+                  <span>
+                    VIDEO
+                  </span>
+
+                  <span>
+                    AUDIO
+                  </span>
+
+                  <span>
+                    FILE
+                  </span>
+
+                  <span>
+                    UP TO 50 MB
+                  </span>
+
+                </div>
+
+              </div>
+
+            ) : null}
+
+            {mediaFile && !mediaUrl && (
+
+              <div className="mediaActionBox">
+
+                <div className="selectedFile">
+
+                  <div className="selectedFileIcon">
+                    📄
+                  </div>
+
+                  <div>
+
+                    <strong>
+                      {mediaFile.name}
+                    </strong>
+
+                    <span>
+                      {(
+                        mediaFile.size /
+                        1024 /
+                        1024
+                      ).toFixed(2)} MB
+                    </span>
+
+                  </div>
+
+                </div>
+
+                {mediaUploading && (
+
+                  <div className="uploadProgress">
+
+                    <div className="uploadProgressTop">
+
+                      <span>
+                        Uploading to Catbox...
+                      </span>
+
+                      <strong>
+                        {mediaProgress}%
+                      </strong>
+
+                    </div>
+
+                    <div className="uploadProgressBar">
+                      <i
+                        style={{
+                          width:
+                            `${mediaProgress}%`
+                        }}
+                      />
+                    </div>
+
+                  </div>
+
+                )}
+
+                <div className="mediaButtons">
+
+                  <button
+                    className="secondary"
+                    onClick={resetMedia}
+                    disabled={mediaUploading}
+                  >
+                    Change file
+                  </button>
+
+                  <button
+                    className="primary"
+                    onClick={uploadToCatbox}
+                    disabled={mediaUploading}
+                  >
+                    {mediaUploading
+                      ? "Uploading..."
+                      : "↑ Upload to Catbox"}
+                  </button>
+
+                </div>
+
+              </div>
+
+            )}
+
+            {mediaUrl && (
+
+              <div className="mediaResult">
+
+                <div className="successLine">
+
+                  <span>✓</span>
+
+                  UPLOAD SUCCESSFUL
+
+                </div>
+
+                <h3>
+                  Your Catbox URL
+                </h3>
+
+                <div className="urlBox">
+
+                  <input
+                    value={mediaUrl}
+                    readOnly
+                    onFocus={(e) =>
+                      e.target.select()
+                    }
+                  />
+
+                  <button
+                    className="primary"
+                    onClick={copyMediaUrl}
+                  >
+                    Copy
+                  </button>
+
+                </div>
+
+                <div className="mediaResultButtons">
+
+                  <a
+                    className="secondary linkButton"
+                    href={mediaUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Open URL
+                  </a>
+
+                  <button
+                    className="secondary"
+                    onClick={resetMedia}
+                  >
+                    Upload another
+                  </button>
+
+                </div>
+
+              </div>
+
+            )}
+
+            {mediaError && (
+
+              <div className="error">
+                ! {mediaError}
+              </div>
+
+            )}
+
+          </section>
+
+        )}
+
+        {error && (
           <div className="error">
             ! {error}
           </div>
-
         )}
 
         <footer>
@@ -849,19 +1225,15 @@ function App() {
             selectTool("home")
           }
         >
-          <span className="navIcon">
-            ⌂
-          </span>
-
-          <small>
-            Home
-          </small>
+          <span className="navIcon">⌂</span>
+          <small>Home</small>
         </button>
 
         <button
           className={
             activeTool === "catalog" ||
-            activeTool === "whatsapp"
+            activeTool === "whatsapp" ||
+            activeTool === "media"
               ? "active"
               : ""
           }
@@ -869,39 +1241,24 @@ function App() {
             selectTool("catalog")
           }
         >
-          <span className="navIcon">
-            ⚒
-          </span>
-
-          <small>
-            Tools
-          </small>
+          <span className="navIcon">⚒</span>
+          <small>Tools</small>
         </button>
 
         <button
           className="navDisabled"
           onClick={() => {}}
         >
-          <span className="navIcon">
-            ♟
-          </span>
-
-          <small>
-            Bots
-          </small>
+          <span className="navIcon">♟</span>
+          <small>Bots</small>
         </button>
 
         <button
           className="navDisabled"
           onClick={() => {}}
         >
-          <span className="navIcon">
-            ✦
-          </span>
-
-          <small>
-            AI
-          </small>
+          <span className="navIcon">✦</span>
+          <small>AI</small>
         </button>
 
       </nav>
