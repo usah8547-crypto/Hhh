@@ -1,117 +1,95 @@
-const express = require("express");
-const multer = require("multer");
-const FormData = require("form-data");
-const axios = require("axios");
-const fs = require("fs");
-const os = require("os");
-const path = require("path");
+import axios from "axios";
+import FormData from "form-data";
 
-const app = express();
-
-const PORT = process.env.PORT || 3001;
-
-const MAX_SIZE = 50 * 1024 * 1024;
-
-const upload = multer({
-  dest: os.tmpdir(),
-  limits: {
-    fileSize: MAX_SIZE
+export const config = {
+  api: {
+    bodyParser: false
   }
-});
+};
 
-app.post(
-  "/api/catbox",
-  upload.single("file"),
-  async (req, res) => {
-    let tempFilePath = null;
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({
+      error: "Method not allowed"
+    });
+  }
 
-    try {
-      if (!req.file) {
-        return res.status(400).json({
-          error: "No file uploaded."
-        });
-      }
+  try {
+    const chunks = [];
 
-      tempFilePath = req.file.path;
+    for await (const chunk of req) {
+      chunks.push(chunk);
+    }
 
-      const form = new FormData();
+    const body = Buffer.concat(chunks);
 
-      form.append(
-        "fileToUpload",
-        fs.createReadStream(tempFilePath),
-        {
-          filename:
-            req.file.originalname
-        }
-      );
+    const contentType =
+      req.headers["content-type"] || "";
 
-      form.append(
-        "reqtype",
-        "fileupload"
-      );
-
-      const response =
-        await axios.post(
-          "https://catbox.moe/user/api.php",
-          form,
-          {
-            headers: form.getHeaders(),
-            maxContentLength:
-              Infinity,
-            maxBodyLength:
-              Infinity,
-            timeout: 120000
-          }
-        );
-
-      const result =
-        String(response.data || "").trim();
-
-      if (
-        !result ||
-        !result.startsWith("http")
-      ) {
-        return res.status(500).json({
-          error:
-            "Catbox upload failed."
-        });
-      }
-
-      return res.json({
-        url: result
+    if (!body.length) {
+      return res.status(400).json({
+        error: "No file uploaded."
       });
+    }
 
-    } catch (error) {
+    const form = new FormData();
 
-      console.error(
-        "Catbox upload error:",
-        error.message
-      );
+    form.append(
+      "reqtype",
+      "fileupload"
+    );
 
+    form.append(
+      "fileToUpload",
+      body,
+      {
+        filename: "upload",
+        contentType:
+          contentType.split(";")[0] ||
+          "application/octet-stream"
+      }
+    );
+
+    const response = await axios.post(
+      "https://catbox.moe/user/api.php",
+      form,
+      {
+        headers: {
+          ...form.getHeaders()
+        },
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity,
+        timeout: 120000
+      }
+    );
+
+    const url =
+      String(response.data || "").trim();
+
+    if (!url.startsWith("http")) {
       return res.status(500).json({
         error:
-          "Unable to upload file to Catbox."
+          "Catbox did not return a valid URL.",
+        details: url
       });
-
-    } finally {
-
-      if (
-        tempFilePath &&
-        fs.existsSync(tempFilePath)
-      ) {
-        try {
-          fs.unlinkSync(
-            tempFilePath
-          );
-        } catch {}
-      }
-
     }
-  }
-);
 
-app.listen(PORT, () => {
-  console.log(
-    `Catbox API running on port ${PORT}`
-  );
-});
+    return res.status(200).json({
+      url
+    });
+
+  } catch (error) {
+    console.error(
+      "CATBOX ERROR:",
+      error.response?.data ||
+      error.message
+    );
+
+    return res.status(500).json({
+      error:
+        error.response?.data ||
+        error.message ||
+        "Catbox upload failed."
+    });
+  }
+}
