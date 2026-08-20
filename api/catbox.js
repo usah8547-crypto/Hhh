@@ -1,5 +1,7 @@
-import axios from "axios";
+import formidable from "formidable";
 import FormData from "form-data";
+import fs from "fs";
+import axios from "axios";
 
 export const config = {
   api: {
@@ -14,64 +16,72 @@ export default async function handler(req, res) {
     });
   }
 
+  let file;
+
   try {
-    const chunks = [];
+    const form = formidable({
+      multiples: false,
+      keepExtensions: true,
+      maxFileSize: 50 * 1024 * 1024
+    });
 
-    for await (const chunk of req) {
-      chunks.push(chunk);
-    }
+    const [, files] = await form.parse(req);
 
-    const body = Buffer.concat(chunks);
+    file = Array.isArray(files.file)
+      ? files.file[0]
+      : files.file;
 
-    const contentType = req.headers["content-type"];
-
-    if (!contentType) {
+    if (!file) {
       return res.status(400).json({
-        error: "Missing content type"
+        error: "No file received"
       });
     }
 
-    const form = new FormData();
+    const catbox = new FormData();
 
-    form.append("reqtype", "fileupload");
+    catbox.append(
+      "reqtype",
+      "fileupload"
+    );
 
-    form.append(
+    catbox.append(
       "fileToUpload",
-      body,
+      fs.createReadStream(file.filepath),
       {
-        filename: "upload",
-        contentType: contentType
+        filename:
+          file.originalFilename || "upload",
+        contentType:
+          file.mimetype ||
+          "application/octet-stream"
       }
     );
 
     const response = await axios.post(
       "https://catbox.moe/user/api.php",
-      form,
+      catbox,
       {
-        headers: {
-          ...form.getHeaders(),
-          "User-Agent":
-            "Mozilla/5.0"
-        },
+        headers: catbox.getHeaders(),
         maxBodyLength: Infinity,
         maxContentLength: Infinity,
         timeout: 120000
       }
     );
 
-    const url =
+    const result =
       String(response.data || "").trim();
 
-    if (!url.startsWith("http")) {
-      return res.status(500).json({
+    console.log("CATBOX RESPONSE:", result);
+
+    if (!result.startsWith("https://")) {
+      return res.status(502).json({
         error:
-          url ||
-          "Catbox did not return a valid URL"
+          result ||
+          "Catbox upload failed"
       });
     }
 
     return res.status(200).json({
-      url
+      url: result
     });
 
   } catch (error) {
@@ -83,9 +93,21 @@ export default async function handler(req, res) {
 
     return res.status(500).json({
       error:
-        error.response?.data ||
-        error.message ||
-        "Upload failed"
+        String(
+          error.response?.data ||
+          error.message ||
+          "Upload failed"
+        )
     });
+
+  } finally {
+    if (
+      file?.filepath &&
+      fs.existsSync(file.filepath)
+    ) {
+      try {
+        fs.unlinkSync(file.filepath);
+      } catch {}
+    }
   }
 }
